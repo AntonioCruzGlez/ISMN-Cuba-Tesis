@@ -2,6 +2,5 @@
 htmlcov
 .coverage
 Pipfile
-db.sqlite3
 Pipfile.lock
 pyvenv.cfg
