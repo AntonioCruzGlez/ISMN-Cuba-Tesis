@@ -2,6 +2,7 @@
 
 <!-- Title on tab browser -->
 {% block title %} Usuario Registro {% endblock title %}
+{% block card-title %} <span class="text-primary"> INSERTE SUS DATOS </span> {% endblock card-title %}
 
 <!-- Navbar content -->
 {% block navbar-content %}
@@ -10,15 +11,11 @@
 
 {% block Action %} action="/register_user/" {% endblock Action %}
 
-<!--=============Include Modals=============-->
-{% include "modals/sendEmailTest.html" %}
-
 {% block Btn-content %}
-    <button type="submit" class="btn btn-primary btn-sm" id="btn-add" data-bs-toggle="modal">
-      <i class="fa fa-registered"></i>&nbsp;&nbsp;Registrarse
+    <!--<div class="spinner-border text-primary" style="margin-left: auto; margin-right: auto" role="status"></div>-->
+    <button type="submit" class="btn btn-primary btn-sm" id="btn-add">
+        <i class="fa fa-registered"></i>&nbsp;&nbsp;Registrarse
     </button>
-
-{#    <a class="btn btn-primary" href="#" data-bs-toggle="modal" data-bs-target="#modal"><i class="fas fa-registered"></i>&nbsp;&nbsp;Registrarse</a>#}
 {% endblock Btn-content %}
 
 {% block Offcanvas %}

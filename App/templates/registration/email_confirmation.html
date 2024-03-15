@@ -1,0 +1,51 @@
+{% extends 'registration/register_user.html' %}
+
+{% block title %} Confirmación de Correo {% endblock title %}
+{% block card-title %} <span class="text-primary"> INSERTE SU CÓDIGO DE CONFIRMACIÓN </span> {% endblock card-title %}
+
+{% block navbar-content %}
+    <i class="fas fa-envelope"></i>&nbsp;&nbsp; Código de confirmación
+{% endblock navbar-content %}
+
+{% block content %}
+    <div class="container" style="width: 60%; max-width: 500px">
+        <div class="card card-body mt-5">
+            <span class="text-center">
+                <span class="text-primary"> INSERTE SU CÓDIGO DE CONFIRMACIÓN </span></span>
+        </div>
+
+        <form action="/email_confirmation/" method="POST" class="p-3 mt-1">
+            {% csrf_token %}
+            <section class="info-box">
+                <p class="lead mb-3" style="font-size: 20px">Se le ha enviado un código de confirmación a su
+                    correo
+                    electrónico. Revise su
+                    bandeja de
+                    entrada para
+                    finalizar la solicitud de inscripción.</p>
+            </section>
+
+            <div class="row">
+                <div class="col-12">
+                    <div class="input-group">
+                        <span class="input-group-text side-label-form justify-content-center"><i
+                                class="fa fa-envelope-open-text"></i></span>
+                        <input type="number" class="form-control" name="code" id="code"
+                               placeholder="Código de confirmación"
+                               required>
+                    </div>
+                </div>
+            </div>
+
+            <button id="send_email" type="submit" style="width: 100%" class="btn btn-primary btn-sm mt-4">
+                <i class="fas fa-arrow-circle-right">&nbsp;&nbsp;</i>Enviar
+            </button>
+
+
+        </form>
+    </div>
+
+
+{% endblock content %}
+
+{% block Action %} action="/" {% endblock Action %}

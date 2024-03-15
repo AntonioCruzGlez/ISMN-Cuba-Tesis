@@ -10,14 +10,16 @@
 
 <!-- Button on navbar -->
 {% block nav-btn %}
-     <a href="{% url 'frontend' %}" style="float: right" class="btn border-dark text-light btn-sn" id="btn-nav" ><i class="fas fa-chevron-left"></i>&nbsp;&nbsp;Back</a>
+    <a href="{% url 'frontend' %}" style="float: right" class="btn text-light btn-sn" id="btn-nav"><i
+            class="fas fa-chevron-left"></i>&nbsp;&nbsp;Back</a>
 {% endblock nav-btn %}
 
 <!-- Page content -->
 {% block content %}
     <div class="container mt-5" id="loginForm">
-        <div class="card p-3 border-dark">
-            <a class="btn btn-outline-dark mt-3"><i class="fa fa-lock"></i>&nbsp;&nbsp; RESTRICTED ACCESS</a>
+        <div class="card p-3">
+            <a class="btn mt-3" style="border: solid #ccc 1px"><i class="fa fa-lock"></i>&nbsp;&nbsp; ACCESO
+                LIMITADO</a>
             <form method="POST" autocomplete="off" novalidate>
                 {% csrf_token %}
                 <div class="input-group mb-3 mt-5">
@@ -34,7 +36,7 @@
             </form>
         </div>
 
-        <div class="card mt-3 p-2 border-dark">
+        <div class="card mt-3 p-2">
             <label for="register">Si no posee una cuenta puede: &nbsp;<a id="register" href="{% url 'register_user' %}">Solicitar Registro</a></label>
 
         </div>

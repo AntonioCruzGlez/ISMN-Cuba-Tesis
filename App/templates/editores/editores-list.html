@@ -8,7 +8,6 @@
     <!--Title-->
     <i class="fas fa-users"></i>&nbsp;&nbsp;Editores
 {% endblock navbar-content %}
-
 <!-- Time -->
 {% block time %}
     <time style="color: #89cff0;" id="clock"></time>
@@ -42,7 +41,7 @@
                 {% endblock %}
                 <!-- 2) Column Get users -->
                 <span>
-                    Bienvenido <strong><span class="text-primary">{{ user.get_username }}</span></strong>
+                    Bienvenido <strong><span class="text-primary">{{ user.get_username|capfirst }}</span></strong>
                 </span>
             </div>
 
@@ -76,7 +75,7 @@
                         {% for editor in editores %}
                             <tr id="chk_td">
                                 <td>{{ editor.id }}</td>
-                                {% if editor.type  == 'I' %}
+                                {% if editor.type  == 'Independiente' %}
                                     <td>Independiente</td>
                                 {% else %}
                                     <td>Empresa</td>
@@ -96,7 +95,8 @@
                                 <td>{{ editor.directions }}</td>
                                 <td>{{ editor.phone }}</td>
                                 <td>
-                                    <a href="/editor/{{ editor.id }}" class="btn btn-sm btn-primary " title="Edit Editor">
+                                    <a href="{% url 'editor' editor.id %}"
+                                       class="btn btn-sm btn-primary " title="Edit Editor">
                                         <i class="fas fa-pen"></i>
                                     </a>
                                 </td>
@@ -185,7 +185,7 @@
 {% endblock content %}
 
 {% block Offcanvas %}
-    <a class="btn btn-dark" href="#"><i class="fas fa-database"></i>&nbsp;&nbsp;Solicitudes</a>
+    <a class="btn btn-dark" href="{% url 'backend_solicitudes' %}"><i class="fas fa-database"></i>&nbsp;&nbsp;Solicitudes</a>
     <a class="btn btn-dark" href="{% url 'backend_publicaciones' %}"><i class="fas fa-database"></i>&nbsp;&nbsp;Publicaciones
         Musicales</a>
     <a class="btn btn-dark" href="{% url 'frontend' %}"><i class="fas fa-arrow-left"></i>&nbsp;&nbsp;Inicio</a>

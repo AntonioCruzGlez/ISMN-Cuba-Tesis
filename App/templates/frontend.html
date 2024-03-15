@@ -9,7 +9,7 @@
     <style>
         body {
             background-image: url("../static/img/home.jpg");
-            background-position: center 0px;
+            background-position: center 0;
             background-repeat: no-repeat;
             background-attachment: fixed;
             background-size: cover;
@@ -23,9 +23,6 @@
         </div>
     </div>
     <br><br><br><br>
-
-    <!--================ Includes (modals) ================-->
-    {% include 'modals/sendEmailTest.html' %}
 {% endblock content %}
 
 {% block Offcanvas %}
@@ -36,7 +33,7 @@
                 de Editores</a>
             <a class="btn btn-dark" href="{% url 'backend_publicaciones' %}"><i class="fas fa-list"></i>&nbsp;&nbsp;Lista
                 de Publicaciones</a>
-            <a class="btn btn-dark" href="#"><i class="fas fa-list"></i>&nbsp;&nbsp;Lista de Solicitudes</a>
+            <a class="btn btn-dark" href="{% url 'backend_solicitudes' %}"><i class="fas fa-list"></i>&nbsp;&nbsp;Lista de Solicitudes</a>
         {% elif request.user.editor %}
             <a class="btn btn-dark" id="btn-Solicitud-ISMN" href="#" data-bs-toggle="modal" data-bs-target="#sendemailtestModal"><i class="fas fa-envelope"></i>&nbsp;&nbsp;Solicitud ISMN</a>
         {% endif %}

@@ -18,21 +18,42 @@
 {% block Action %} action="/edit_musical_publication/" {% endblock Action %}
 
 <!--=========== Extends all <inputs> from add.html ===========-->
-{% block Value-name %} value = "{{ musical_publication.name }}" {% endblock Value-name %}
+{% block Value-title %} value = "{{ musical_publication.name }}" {% endblock Value-title %}
 {% block Value-autor %} value = "{{ musical_publication.autor }}" {% endblock Value-autor %}
-{% block Value-ismn %} value = "{{ musical_publication.ismn }}" {% endblock Value-ismn %}
-{% block Value-date_time  %}{{ musical_publication.date_time | date:"Y-m-d" }}{% endblock Value-date_time %}
-{% block Value-imagen %} <a href="/media/{{ musical_publication.imagen.name }}">{{ musical_publication.imagen.name }}</a>{% endblock Value-imagen %}
-
-{% block option %} <option style="background-color: #d3d3d3; color: #0a6ebd; font-weight: bold"> {{ musical_publication.gender }} {% endblock %}
+{% block Value-editor %} value = "{{ musical_publication.editor }}" {% endblock Value-editor %}>
+{% block Value-prefijo-editor %} value = "Prefijo del editor: {{ musical_publication.editor.prefijo }}
+    " {% endblock Value-prefijo-editor %}>
+{% block Value-prefijo-publicacion %} value = "Prefijo de la publicación: {{ musical_publication.prefijo }}
+    " {% endblock Value-prefijo-publicacion %}
+{% block Value-ISMN %} value = "{{ musical_publication.ismn }}" {% endblock Value-ISMN %}
+{% block Value-Gender %}
+    <option style="background-color: #d3d3d3; color: #0a6ebd; font-weight: bold"> {{ musical_publication.gender }}
+{% endblock Value-Gender %}
+{% block Value-date %} value = "{{ musical_publication.date_time | date:"Y-m-d" }}" {% endblock Value-date %}>
 {% block Value-description %}{{ musical_publication.description }}{% endblock Value-description %}
-{% block Value-letter %}{{ musical_publication.letter_contain }}{% endblock Value-letter %}
+{% block Title-Imagen-Sub %}
+    Cambiar imagen de la publicación.
+{% endblock Title-Imagen-Sub %}
+{% block Value-imagen %}
+    <div class="mb-3">Actualmente:
+        <a href="/media/{{ musical_publication.imagen.name }}">{{ musical_publication.imagen.name }}</a>
+    </div>
+{% endblock Value-imagen %}
 
+{% block Title-Letter-Sub %}
+    Cambiar letra de la publicación.
+{% endblock Title-Letter-Sub %}
+{% block Value-letter %}
+    <div class="mb-3 edicion">Actualmente:
+        <a href="/media/{{ musical_publication.letra.name }}">{{ musical_publication.letra.name }}</a>
+    </div>
+{% endblock Value-letter %}
 
 <!-- Extends ADD Button -->
-{% block Btn-content %} <i class="fas fa-hdd">&nbsp;&nbsp;</i> Save {% endblock Btn-content %}
+{% block Btn-content %} <i class="fas fa-hdd">&nbsp;&nbsp;</i> Guardar {% endblock Btn-content %}
 
 <!-- Extends Reset Button -->
 {% block Btn-reset %}
-    <button type="reset" class="btn btn-secondary btn-sm"><i class="fas fa-sync-alt"></i>&nbsp;&nbsp; Reset</button>
- {% endblock Btn-reset %}
+    <button type="reset" class="btn btn-secondary btn-sm"><i class="fas fa-sync-alt"></i>&nbsp;&nbsp; Restablecer
+    </button>
+{% endblock Btn-reset %}

@@ -5,7 +5,6 @@
 
 <!-- Input ID passed here -->
 {% block Id-hidden %} <input type="text" name="id" value="{{ editor.id }}" hidden> {% endblock Id-hidden %}
-
 <!-- Navbar content -->
 {% block navbar-content %}
     <i class="fas fa-user-edit"></i>&nbsp;&nbsp; {{ editor.user.first_name }}
@@ -21,16 +20,12 @@
 
 <!--=========== Extends all <inputs> from add.html ===========-->
 {% block Value-username %} value = "{{ editor.user.username }}" {% endblock Value-username %}
+{% block Value-password %} value = ******** {% endblock Value-password %}
 {% block Value-phone %} value = "{{ editor.phone }}" {% endblock Value-phone %}
 {% block Value-email %} value = "{{ editor.user.email }}" {% endblock Value-email %}
 {% block Editor-type %}
-    <option style="background-color: #d3d3d3; color: #0a6ebd; font-weight: bold">
-    {% if editor.type == 'Independiente' %}
-        {{ 'Independiente' }}
-    {% endif %}
-    {% if editor.type == 'Compañia' %}
-        {{ 'Compañia' }}
-    {% endif %}
+    <option id="seleccion_editor_type" style="background-color: #d3d3d3; color: #0a6ebd; font-weight: bold">
+    {{ editor.type }}
 {% endblock Editor-type %}
 {% block Value-edad %} value = "{{ editor.age }}" {% endblock Value-edad %}
 {% block Value-nombre %} value = "{{ editor.user.first_name }}" {% endblock Value-nombre %}
@@ -39,15 +34,19 @@
 {% block Value-tribute %} value = "{{ editor.id_tribute }}" {% endblock Value-tribute %}
 {% block Value-description %}{{ editor.note }}{% endblock Value-description %}
 {% block Value-publications_per_year %}
-    <option style="background-color: #d3d3d3; color: #0a6ebd; font-weight: bold">
+    <option id="editor_prefijo" style="background-color: #d3d3d3; color: #0a6ebd; font-weight: bold">
     {{ editor.prefijo.rango }}
 {% endblock Value-publications_per_year %}
+{% block Value-disbled %} readonly {% endblock Value-disbled %}
 
 
 <!-- Extends ADD Button -->
-{% block Btn-content %} <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-hdd">&nbsp;&nbsp;</i> Save</button> {% endblock Btn-content %}
+{% block Btn-content %}
+    <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-hdd">&nbsp;&nbsp;</i> Guardar</button>
+{% endblock Btn-content %}
 
 <!-- Extends Reset Button -->
 {% block Btn-reset %}
-    <button type="reset" class="btn btn-secondary btn-sm"><i class="fas fa-sync-alt"></i>&nbsp;&nbsp; Reset</button>
+    <button type="reset" class="btn btn-secondary btn-sm"><i class="fas fa-sync-alt"></i>&nbsp;&nbsp; Restablecer
+    </button>
  {% endblock Btn-reset %}

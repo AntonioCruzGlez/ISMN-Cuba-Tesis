@@ -18,7 +18,7 @@
 <!-- PAGE CONTENT -->
 {% block content %}
     <div class="container">
-        <div class="card card-body border-dark mt-5">
+        <div class="card card-body mt-5">
             <span class="text-center"> {% block card-title %}
                 <span class="text-primary"> INSERTE LOS DATOS DEL EDITOR </span> {% endblock card-title %} </span>
         </div>
@@ -29,9 +29,9 @@
 
                 <!-- Form -->
                 <form {% block Action %} action="/add_editor/" {% endblock Action %} method="POST"
-                                         enctype="multipart/form-data" class="card p-3 border-dark mt-3 form-register">
+                                                                                     enctype="multipart/form-data"
+                                                                                     class="card p-3 mt-3 form-register">
                     {% csrf_token %}
-
                     <!-- Input ID denied here -->
                     {% block Id-hidden %} {% endblock Id-hidden %}
 
@@ -48,6 +48,7 @@
                                 <span class="input-group-text side-label-form justify-content-center"><i class="fa fa-lock"></i></span>
                                 <input type="password" class="form-control" name="password"
                                        placeholder="Nueva Contraseña"
+                                        {% block Value-password %}{% endblock Value-password %}
                                        id="userPassword" required>
                                 <i class="fa fa-eye-slash position-absolute" onclick="toggleFunction()" style="cursor: pointer; bottom: .5rem; right: 1rem;" id="toggleIcon"></i>
                             </div>
@@ -138,7 +139,8 @@
                                 <div class="input-group input-group-sm mb-3">
                                     <label class="input-group-text side-label-form justify-content-center"><i
                                             class="fa fa-hashtag"></i></label>
-                                    <select class="form-select form-control" name="editorPrefijo" id="editorPrefijo" required>
+                                    <select class="form-select form-control" name="editorPrefijo" id="editorPrefijo"
+                                            required {% block Value-disbled %}{% endblock Value-disbled %}>
                                         {% block Value-publications_per_year %}
                                             <option value="" hidden>Número de publicaciones por año</option>
                                         {% endblock Value-publications_per_year %}
@@ -171,13 +173,13 @@
 
                     <div class="form-group mb-3">
                         <textarea class="form-control text-sm" name="note" maxlength="1000" rows="4"
-                                  placeholder="Description is optional...">{% block Value-description %}{% endblock Value-description %}</textarea>
+                                  placeholder="La descripción es opcional...">{% block Value-description %}{% endblock Value-description %}</textarea>
                     </div>
 
                     <hr style="height: 2px;">
                     <div class="mb-3">
                         <div class="mb-3" style="font-size: 14px;"><i class="fa fa-cloud-upload-alt"></i>&nbsp;&nbsp; Sube una foto a tu perfil</div>
-                        <input type="file" class="form-control form-control-sm" name="imagenProfile" accept="image/png, image/jpeg, image/jpg">
+                        <input type="file" class="form-control form-control-sm" name="imagenProfile" accept="image/*">
                         <div class="form-text" style="font-size: 12px;">* Extensiones permitidas: jpg - png - jpeg</div>
                     </div>
 
@@ -186,7 +188,7 @@
                         <!-- Add Button -->
                         {% block Btn-content %}
                             <button type="submit" class="btn btn-primary btn-sm" id="btn-add">
-                                 <i class="fas fa-plus">&nbsp;&nbsp;</i>Add
+                                <i class="fas fa-plus">&nbsp;&nbsp;</i>Añadir
                             </button>
                         {% endblock Btn-content %}
 
@@ -204,7 +206,7 @@
 {% endblock content %}
 
 {% block Offcanvas %}
-    <a class="btn btn-dark" href="{% url 'frontend' %}"><i class="fas fa-arrow-left"></i>&nbsp;&nbsp;Atrás</a>
+    <a class="btn btn-dark" href="{% url 'backend_editores' %}"><i class="fas fa-arrow-left"></i>&nbsp;&nbsp;Atrás</a>
     <hr>
     <a href="#" class="btn btn-dark">
         <i class="fas fa-headset"></i>&nbsp;&nbsp; Ayuda

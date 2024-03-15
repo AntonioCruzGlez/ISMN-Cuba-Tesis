@@ -41,6 +41,8 @@ INSTALLED_APPS = [
     'App',
 ]
 
+SESSION_ENGINE = "django.contrib.sessions.backends.file"
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',

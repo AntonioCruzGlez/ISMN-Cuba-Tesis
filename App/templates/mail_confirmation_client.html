@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Onest:wght@100..900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #fdfeff;
+        }
+
+        #logo {
+            width: 15%;
+            aspect-ratio: 345/446;
+            display: block;
+            margin-right: auto;
+            margin-left: auto;
+        }
+
+        hr {
+            height: 3px;
+            width: 80%;
+            border: 0;
+            background-color: #23406c;
+        }
+
+        h1, h3, footer {
+            text-align: center;
+            color: #2d2d2b;
+            font-family: 'Onest', sans-serif;
+            font-weight: 400;
+            margin: 25px;
+        }
+
+        .box {
+            width: 20%;
+            min-width: 200px;
+            border: solid #23406c 3px;
+            border-radius: 10px;
+            margin-right: auto;
+            margin-left: auto;
+        }
+
+        .code {
+            font-family: 'Onest', sans-serif;
+            font-weight: 600;
+            font-size: 25px;
+            margin: 10px;
+        }
+    </style>
+    <title>Petición de registro a la CCL en Cuba</title>
+</head>
+<body>
+<header>
+    <img id="logo"
+         src="https://www.filhcuba.cu/web/image/5625-4ca3551d/C%C3%81MARA%20DEL%20LIBRO%20%20AZUL%20vertical%20jpg.jpg"
+         alt="Logo de Camara Cubana del Libro" loading="lazy">
+    <br>
+    <hr>
+    <h1>Hola {{ nombre }} &#128400; <br> Este es su código de confirmación de correo.</h1>
+</header>
+<section>
+    <div class="box">
+        <p style="text-align: center" class="code">{{ code }}</p>
+    </div>
+    <h3>Inserte el código en la sección de registro de nuestro sitio web para finalizar la solicitud de
+        inscripción.</h3>
+    <hr>
+</section>
+<footer style="margin-top: 15px">
+    Copyright &copy; {% now "Y" %} Todos los derechos reservados | Agencia Cubana del ISBN |
+    Cámara Cubana del Libro | T0N1
+</footer>
+
+</body>
+</html>
