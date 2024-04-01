@@ -1,15 +1,19 @@
-import re
+import base64
 from datetime import datetime
+from random import randint
+from smtplib import SMTPServerDisconnected
+
 from PIL import Image as PILImage, ImageDraw
 from django.contrib.auth.models import User
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from pathlib import Path
 
-from App.models import Editor, Musical_Publication, Registered_Data, PrefijoEditor, PrefijoPublicacion, Rango_Prefijo
+from App.models import (Editor, Musical_Publication, Registered_Data, PrefijoEditor, PrefijoPublicacion,
+                        Rango_Prefijo_Editor, Rango_Prefijo_Publicacion, Solicitud)
 from django.views.decorators.cache import cache_control
 from django.contrib import messages  # Return messages
-from django.http import HttpResponseRedirect  # Redirect the page after submit
+from django.http import HttpResponseRedirect, QueryDict  # Redirect the page after submit
 from django.db.models import Q, Max, Count
 from django.core.paginator import Paginator
 from django.core.mail import EmailMultiAlternatives  # Required to send emails
@@ -21,12 +25,14 @@ from django.http import FileResponse
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.lib import colors
-from reportlab.platypus import Table, TableStyle, Image, Frame
+from reportlab.platypus import Table, TableStyle, Image
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import inch
 from reportlab.lib.pagesizes import A4, letter
 
+# ================= VARIABLES TEMPORALES =================
+datos = QueryDict
 
 # ================= SECCIÓN DE SEGURIDAD Y AUTENTICACIÓN =================
 class MyLoginView(LoginView):
@@ -38,62 +44,143 @@ class MyLogoutView(LogoutView):
     next_page = '/'
 
 
+# ================= SECCIÓN DE CREACIÓN DE RANGOS Y PREFIJOS =================
+def generate_prefijo_editor(range):
+    value = 0
+    lote = '979-0'
+    if range == 'p-menor':
+        max_menor = PrefijoEditor.objects.filter(rango__tipo='P-Menor').aggregate(Max('value'))['value__max']
+        if max_menor:
+            value = max_menor + 1
+            return PrefijoEditor.objects.create(value=value, lote=lote,
+                                                rango=Rango_Prefijo_Editor.objects.get(tipo='P-Menor'))
+        else:
+            return PrefijoEditor.objects.create(value=100001, lote=lote,
+                                                rango=Rango_Prefijo_Editor.objects.get(tipo='P-Menor'))
+    elif range == 'p-inferior':
+        max_inferior = PrefijoEditor.objects.filter(rango__tipo='P-Inferior').aggregate(Max('value'))['value__max']
+        if max_inferior:
+            value = max_inferior + 1
+            return PrefijoEditor.objects.create(value=value, lote=lote,
+                                                rango=Rango_Prefijo_Editor.objects.get(tipo='P-Inferior'))
+        else:
+            return PrefijoEditor.objects.create(value=10001, lote=lote,
+                                                rango=Rango_Prefijo_Editor.objects.get(tipo='P-Inferior'))
+    elif range == 'p-medio_inferior':
+        max_medio_inf = PrefijoEditor.objects.filter(rango__tipo='P-Medio_Inferior').aggregate(Max('value'))[
+            'value__max']
+        if max_medio_inf:
+            value = max_medio_inf + 1
+            return PrefijoEditor.objects.create(value=value, lote=lote,
+                                                rango=Rango_Prefijo_Editor.objects.get(tipo='P-Medio_Inferior'))
+        else:
+            return PrefijoEditor.objects.create(value=1001, lote=lote,
+                                                rango=Rango_Prefijo_Editor.objects.get(tipo='P-Medio_Inferior'))
+    elif range == 'p-medio':
+        max_medio = PrefijoEditor.objects.filter(rango__tipo='P-Medio').aggregate(Max('value'))['value__max']
+        if max_medio:
+            value = max_medio + 1
+            return PrefijoEditor.objects.create(value=value, lote=lote,
+                                                rango=Rango_Prefijo_Editor.objects.get(tipo='P-Medio'))
+        else:
+            return PrefijoEditor.objects.create(value=101, lote=lote,
+                                                rango=Rango_Prefijo_Editor.objects.get(tipo='P-Medio'))
+    elif range == 'p-superior':
+        max_superior = PrefijoEditor.objects.filter(rango__tipo='P-Superior').aggregate(Max('value'))['value__max']
+        if max_superior:
+            value = max_superior + 1
+            return PrefijoEditor.objects.create(value=value, lote=lote,
+                                                rango=Rango_Prefijo_Editor.objects.get(tipo='P-Superior'))
+        else:
+            return PrefijoEditor.objects.create(value=1, lote=lote,
+                                                rango=Rango_Prefijo_Editor.objects.get(tipo='P-Superior'))
+
+
+def generate_prefijo_publicacion(valor):
+    if valor.__len__() == 2:
+        prefijo = PrefijoPublicacion.objects.create(value=valor, lote='979-0',
+                                                    rango=Rango_Prefijo_Publicacion.objects.get(tipo='P-Menor'))
+        return prefijo
+    elif valor.__len__() == 3:
+        prefijo = PrefijoPublicacion.objects.create(value=valor, lote='979-0',
+                                                    rango=Rango_Prefijo_Publicacion.objects.get(
+                                                        tipo='P-Inferior'))
+        return prefijo
+    elif valor.__len__() == 4:
+        prefijo = PrefijoPublicacion.objects.create(value=valor, lote='979-0',
+                                                    rango=Rango_Prefijo_Publicacion.objects.get(
+                                                        tipo='P-Media_Inferior'))
+        return prefijo
+    elif valor.__len__() == 5:
+        prefijo = PrefijoPublicacion.objects.create(value=valor, lote='979-0',
+                                                    rango=Rango_Prefijo_Publicacion.objects.get(tipo='P-Media'))
+        return prefijo
+    else:
+        prefijo = PrefijoPublicacion.objects.create(value=valor, lote='979-0',
+                                                    rango=Rango_Prefijo_Publicacion.objects.get(
+                                                        tipo='P-Superior'))
+        return prefijo
+
+
 # Registration Function
 def register_user(request):
     if request.method == 'POST':
-        return render(request, 'frontend.html')
+        # Check if email exists in BD
+        email = request.POST['email']
+        phone = request.POST['phone']
+        if Registered_Data.objects.filter(email=email).exists():
+            messages.error(request, "Este correo electrónico ya ha sido registrado en nuestra Base de Datos")
+            return HttpResponseRedirect('/login')
+        elif Registered_Data.objects.filter(phone=phone).exists():
+            messages.error(request, "Este teléfono ya ha sido registrado en nuestra Base de Datos")
+            return HttpResponseRedirect('/login')
+        # ===========================
+        else:
+            if request.POST.get('username') \
+                    and request.POST.get('first_name') \
+                    and request.POST.get('password') \
+                    and request.POST.get('phone') \
+                    and request.POST.get('email') \
+                    and request.POST.get('editorType') \
+                    and request.POST.get('address') \
+                    and request.POST.get('idTribute') \
+                    and request.POST.get('editorPrefijo'):
+                datos = request.POST.copy()
+                if request.FILES:
+                    # Convertir la imagen a base64 para poder serializarla a JSON en el request.session
+                    datos['imagenProfile'] = base64.b64encode(request.FILES['imagenProfile'].read())
+                    # Agregar la informacion inicial para que pueda ser leida por el "src" de <img> en el html
+                    imagen_extension = request.FILES['imagenProfile'].content_type
+                    datos['imagenProfile'] = f"data:{imagen_extension};base64," + datos['imagenProfile']
+                confirmation_code = send_email(request)
+                datos['code_confirmation'] = confirmation_code
+                request.session['datos'] = datos
+                return render(request, 'registration/email_confirmation.html')
+            else:
+                messages.error(request, "Complete todos los campos del formulario")
+                return HttpResponseRedirect('/register_user')
     else:
         return render(request, 'registration/register_user.html')
 
 
-# ================= SECCIÓN DE CREACIÓN DE RANGOS Y PREFIJOS =================
-def generate_prefijo(range, models):
-    value = 0
-    lote = '979-0'
-    if range == 'p-menor':
-        max_menor = models.objects.filter(rango__tipo='P-Menor').aggregate(Max('value'))['value__max']
-        if max_menor:
-            value = max_menor + 1
-            return models.objects.create(value=value, lote=lote, rango=Rango_Prefijo.objects.get(tipo='P-Menor'))
+def email_confirmation(request):
+    if request.method == 'POST':
+        if request.POST.get('code') != str(request.session.get('datos')['code_confirmation']):
+            messages.error(request, 'Código incorrecto. Revise su correo electrónico')
+            return HttpResponseRedirect('/email_confirmation')
         else:
-            return models.objects.create(value=100001, lote=lote, rango=Rango_Prefijo.objects.get(tipo='P-Menor'))
-    elif range == 'p-inferior':
-        max_inferior = models.objects.filter(rango__tipo='P-Inferior').aggregate(Max('value'))['value__max']
-        if max_inferior:
-            value = max_inferior + 1
-            return models.objects.create(value=value, lote=lote,
-                                         rango=Rango_Prefijo.objects.get(tipo='P-Inferior'))
-        else:
-            return models.objects.create(value=10001, lote=lote,
-                                         rango=Rango_Prefijo.objects.get(tipo='P-Inferior'))
-    elif range == 'p-medio_inferior':
-        max_medio_inf = models.objects.filter(rango__tipo='P-Medio_Inferior').aggregate(Max('value'))['value__max']
-        if max_medio_inf:
-            value = max_medio_inf + 1
-            return models.objects.create(value=value, lote=lote,
-                                         rango=Rango_Prefijo.objects.get(tipo='P-Medio_Inferior'))
-        else:
-            return models.objects.create(value=1001, lote=lote,
-                                         rango=Rango_Prefijo.objects.get(tipo='P-Medio_Inferior'))
-    elif range == 'p-medio':
-        max_medio = models.objects.filter(rango__tipo='P-Medio').aggregate(Max('value'))['value__max']
-        if max_medio:
-            value = max_medio + 1
-            return models.objects.create(value=value, lote=lote,
-                                         rango=Rango_Prefijo.objects.get(tipo='P-Medio'))
-        else:
-            return models.objects.create(value=101, lote=lote,
-                                         rango=Rango_Prefijo.objects.get(tipo='P-Medio'))
-    elif range == 'p-superior':
-        max_superior = models.objects.filter(rango__tipo='P-Superior').aggregate(Max('value'))['value__max']
-        if max_superior:
-            value = max_superior + 1
-            return models.objects.create(value=value, lote=lote,
-                                         rango=Rango_Prefijo.objects.get(tipo='P-Superior'))
-        else:
-            return models.objects.create(value=1, lote=lote,
-                                         rango=Rango_Prefijo.objects.get(tipo='P-Superior'))
-
+            solicitud = Solicitud()
+            solicitud.tipo = 'Solicitud-Inscripción'
+            solicitud.status = 'Pendiente'
+            solicitud.temporal = request.session.get('datos')
+            solicitud.save()
+            # LINEA PARA TRANSFORMAR DE BASE64 A IMAGE
+            # PILImage.open(io.BytesIO(base64.b64decode(request.session.get('datos')['imagenProfile'])))
+            messages.success(request, 'Su solicitud se ha enviado correctamente, le notificaremos a su correo '
+                                      'cuando haya sido aceptada.')
+            return HttpResponseRedirect('/')
+    else:
+        return render(request, 'registration/email_confirmation.html')
 
 # ================= SECCIÓN DEL USUARIO (EDITOR) =================
 # Function to render the Home Page for everybody
@@ -102,7 +189,7 @@ def frontend(request):
 
 
 # ================= SECCIÓN DEL USUARIO (ESPECIALISTA) =================
-# Function to render editor's list
+# Function to render editor's lists
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @login_required(login_url="login")
 def backend_editores(request):
@@ -110,10 +197,10 @@ def backend_editores(request):
         q = request.GET['q']
         all_editor_list = Editor.objects.filter(
             Q(user__username__icontains=q) | Q(user__email__icontains=q) | Q(directions__icontains=q) |
-            Q(note__icontains=q) | Q(user__first_name__icontains=q)
+            Q(note__icontains=q) | Q(user__first_name__icontains=q) | Q(type__icontains=q)
         ).order_by('-user__date_joined')
         if q.isnumeric():
-            all_editor_list = Editor.objects.filter(Q(age=q) | Q(phone__contains=q) |
+            all_editor_list = Editor.objects.filter(Q(age=q) | Q(phone__contains=q) | Q(prefijo__value__contains=q) |
                                                     Q(id_tribute=q)).order_by('-user__date_joined')
     else:
         all_editor_list = Editor.objects.all().order_by('-user__date_joined')
@@ -125,6 +212,7 @@ def backend_editores(request):
     return render(request, 'editores/editores-list.html', {"editores": all_editor})
 
 
+# Function to render publication's lists
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @login_required(login_url="login")
 def backend_publicaciones(request):
@@ -144,6 +232,25 @@ def backend_publicaciones(request):
     return render(request, 'publicaciones/publications-list.html', {"publicaciones": all_publication})
 
 
+# Function to render las listas de solicitudes
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+@login_required(login_url="login")
+def backend_solicitudes(request):
+    if 'q' in request.GET:
+        q = request.GET['q']
+        all_solicitudes_list = Solicitud.objects.filter(
+            Q(tipo__icontains=q) | Q(editor__user__username__icontains=q) |
+            Q(status__icontains=q)
+        ).order_by('-created_at')
+    else:
+        all_solicitudes_list = Solicitud.objects.all().order_by('-created_at')
+
+    paginator = Paginator(all_solicitudes_list, 4)
+    page = request.GET.get('page')
+    all_solicitudes = paginator.get_page(page)
+    return render(request, 'solicitudes/solicitudes-list.html', {"solicitudes": all_solicitudes})
+
+
 # Function to Add Editor
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @login_required(login_url="login")
@@ -155,10 +262,10 @@ def add_editor(request):
         phone = request.POST['phone']
         if Registered_Data.objects.filter(email=email).exists():
             messages.error(request, "Este correo electrónico ya ha sido registrado en nuestra Base de Datos")
-            return HttpResponseRedirect('/')
+            return HttpResponseRedirect('/backend')
         elif Registered_Data.objects.filter(phone=phone).exists():
             messages.error(request, "Este teléfono ya ha sido registrado en nuestra Base de Datos")
-            return HttpResponseRedirect('/')
+            return HttpResponseRedirect('/backend')
         # ===========================
         else:
             if request.POST.get('username') \
@@ -185,7 +292,7 @@ def add_editor(request):
                 editor.directions = request.POST.get('address')
                 editor.id_tribute = request.POST.get('idTribute')
                 editor.user = user
-                editor.prefijo = generate_prefijo(request.POST.get('editorPrefijo'), PrefijoEditor)
+                editor.prefijo = generate_prefijo_editor(request.POST.get('editorPrefijo'))
                 editor.note = request.POST.get('note')
                 editor.image_profile = request.FILES.get('imagenProfile')
                 user.save()
@@ -209,9 +316,8 @@ def add_editor(request):
 @login_required(login_url="login")
 def delete_editor(request, editor_id):
     editor = Editor.objects.get(id=editor_id)
-    register_data = Registered_Data.objects.get(phone=editor.phone)
-    register_data.delete()
-    editor.user.delete()
+    Registered_Data.objects.get(phone=editor.phone).delete()
+    User.objects.get(username=editor.user.username).delete()
     editor.delete()
     messages.success(request, "Editor eliminado correctamente !")
     return HttpResponseRedirect('/backend')
@@ -224,6 +330,8 @@ def editor(request, editor_id):
     editor = Editor.objects.get(id=editor_id)
     if editor:
         return render(request, "editores/edit.html", {"editor": editor})
+    else:
+        return HttpResponseRedirect('/backend')
 
 
 # Function to edit the Editor
@@ -233,12 +341,18 @@ def edit_editor(request):
     if request.method == "POST":
         editor = Editor.objects.get(id=request.POST.get('id'))
         if editor:
-            editor.name = request.POST.get("name")
-            editor.phone = request.POST.get("phone")
-            editor.email = request.POST.get("email")
-            editor.age = request.POST.get("age")
-            editor.gender = request.POST.get("gender")
+            editor.user.username = request.POST.get('username')
+            editor.user.first_name = request.POST.get('first_name')
+            editor.phone = request.POST.get('phone')
+            editor.user.email = request.POST.get("email")
+            editor.directions = request.POST.get('address')
+            editor.type = request.POST.get("editorType")
+            if request.POST.get('age'):
+                editor.age = request.POST.get("age")
+                editor.user.last_name = request.POST.get('last_name')
+            editor.id_tribute = request.POST.get("idTribute")
             editor.note = request.POST.get("note")
+            editor.image_profile = request.FILES.get('imagenProfile')
             editor.save()
             messages.success(request, "Editor editado correctamente !")
             return HttpResponseRedirect('/backend')
@@ -269,26 +383,33 @@ def musical_colections_list(request):
 @login_required(login_url="login")
 def add_musical_publication(request):
     if request.method == 'POST':
-        if request.POST.get('name') \
+        if request.POST.get('title') \
                 and request.POST.get('autor') \
+                and request.POST.get('editor') \
+                and request.POST.get('prefijo-publicacion') \
                 and request.POST.get('ismn') \
-                and request.POST.get('letter_contain') \
-                and request.POST.get('description') \
-                and request.POST.get('date_time') \
                 and request.POST.get('gender') \
-                or request.POST.get('imagen'):
+                and request.POST.get('date'):
             musical_publication = Musical_Publication()
-            musical_publication.name = request.POST.get('name')
+            editor = Editor.objects.get(user__first_name=request.POST.get('editor'))
+            prefijo_value = request.POST.get('prefijo-publicacion').rpartition(" ")[2]
+            prefijo = generate_prefijo_publicacion(prefijo_value)
+            musical_publication.name = request.POST.get('title')
             musical_publication.autor = request.POST.get('autor')
+            musical_publication.editor = editor
+            musical_publication.prefijo = prefijo
             musical_publication.ismn = request.POST.get('ismn')
-            musical_publication.letter_contain = request.POST.get('letter_contain')
-            musical_publication.description = request.POST.get('description')
-            musical_publication.date_time = request.POST.get('date_time')
             musical_publication.gender = request.POST.get('gender')
-            musical_publication.imagen = request.FILES.get('imagen')
+            musical_publication.letra = request.FILES.get('publication_letter')
+            if request.FILES.get('publication_image'):
+                musical_publication.imagen = request.FILES.get('publication_image')
+            else:
+                pass
+            musical_publication.description = request.POST.get('note')
+            musical_publication.date_time = request.POST.get('date')
             musical_publication.save()
             messages.success(request, "Publicación musical añadida correctamente !")
-            return HttpResponseRedirect('/backend')
+            return HttpResponseRedirect('/backend_publicaciones')
     else:
         editores = Editor.objects.annotate(Count('musical_publication'))
         data = {'editores': editores}
@@ -300,8 +421,10 @@ def add_musical_publication(request):
 @login_required(login_url="login")
 def musical_publication(request, musical_publication_id):
     musical_publication = Musical_Publication.objects.get(id=musical_publication_id)
+    editores = Editor.objects.all()
+    data = {"musical_publication": musical_publication, "editores": editores}
     if musical_publication:
-        return render(request, "publicaciones/edit_publication.html", {"musical_publication": musical_publication})
+        return render(request, "publicaciones/edit_publication.html", data)
 
 
 # Function to edit the patients
@@ -311,17 +434,31 @@ def edit_musical_publication(request):
     if request.method == "POST":
         musical_publication = Musical_Publication.objects.get(id=request.POST.get('id'))
         if musical_publication:
-            musical_publication.name = request.POST.get('name')
+            musical_publication.name = request.POST.get('title')
             musical_publication.autor = request.POST.get('autor')
-            musical_publication.ismn = request.POST.get('ismn')
-            musical_publication.letter_contain = request.POST.get('letter_contain')
-            musical_publication.description = request.POST.get('description')
-            musical_publication.date_time = request.POST.get('date_time')
+            if request.POST.get('editor') != str(musical_publication.editor):
+                editor = Editor.objects.get(user__first_name=request.POST.get('editor'))
+                musical_publication.editor = editor
+                prefijo_value = request.POST.get('prefijo-publicacion').rpartition(" ")[2]
+                prefijo = generate_prefijo_publicacion(prefijo_value)
+                musical_publication.prefijo = prefijo
+                musical_publication.ismn = request.POST.get('ismn')
+            else:
+                pass
             musical_publication.gender = request.POST.get('gender')
-            musical_publication.imagen = request.FILES.get('imagen')
+            if request.FILES.get('publication_letter'):
+                musical_publication.letra = request.FILES.get('publication_letter')
+            else:
+                pass
+            if request.FILES.get('publication_image'):
+                musical_publication.imagen = request.FILES.get('publication_image')
+            else:
+                pass
+            musical_publication.description = request.POST.get('note')
+            musical_publication.date_time = request.POST.get('date')
             musical_publication.save()
             messages.success(request, "Publicacion Musical actualizada correctamente !")
-            return HttpResponseRedirect('/musical_colections')
+            return HttpResponseRedirect('/backend_publicaciones')
 
 
 # Function to delete a musical publication
@@ -331,42 +468,41 @@ def delete_musical_publication(request, musical_publication_id):
     musical_publication = Musical_Publication.objects.get(id=musical_publication_id)
     musical_publication.delete()
     messages.success(request, "Publicacion Musical eliminada correctamente !")
-    return HttpResponseRedirect('/musical_colections')
+    return HttpResponseRedirect('/backend_publicaciones')
 
 
-# Function to send ISMN solicitud
-def send_email_solicitud_ismn(request):
-    if request.method == 'POST':
-        name = request.POST.get('name')
-        age = request.POST.get('age')
-        email = request.POST.get('email')
-        phone = request.POST.get('phone')
-        address = request.POST.get('address')
-        descripcion = request.POST.get('descripcion')
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+@login_required(login_url="login")
+def delete_solicitud(request, solicitud_id):
+    solicitud = Solicitud.objects.get(id=solicitud_id)
+    solicitud.delete()
+    messages.success(request, "Solicitud eliminada correctamente !")
+    return HttpResponseRedirect('/backend_solicitudes')
 
-        context = {
-            'name': name,
-            'age': age,
-            'email': email,
-            'phone': phone,
-            'address': address,
-            'descripcion': descripcion
-        }
-        message = loader.render_to_string('resume_form.html', context)
-        email = EmailMultiAlternatives(
-            "ISMN - Solicitud", message,
-            "Editores de Cuba",
-            ['antoniocruzglez24@gmail.com'],
-        )
 
-        email.content_subtype = 'html'
-        file = request.FILES['file']
-        email.attach(file.name, file.read(), file.content_type)
-        try:
-            email.send()
-        except TimeoutError:
-            messages.error(request, 'Error en la conexión. Intente más tarde.')
-        messages.success(request, 'Solicitud ISMN enviada correctamente !')
+# Function to send Confirmation Code
+def generate_confirmation_code():
+    return randint(1000, 9999)
+
+
+def send_email(request):
+    confirmation_code = generate_confirmation_code()
+    context = {
+        'nombre': request.POST.get('first_name'),
+        'code': confirmation_code
+    }
+    message = loader.render_to_string('mail_confirmation_client.html', context)
+    email = EmailMultiAlternatives(
+        "Confirmación de Correo", message,
+        "CCL de Cuba",
+        [request.POST.get('email')],
+    )
+    email.content_subtype = 'html'
+    try:
+        email.send()
+        return confirmation_code
+    except TimeoutError or SMTPServerDisconnected:
+        messages.error('Error en la conexión. Intente más tarde.')
         return HttpResponseRedirect('/')
 
 
@@ -760,3 +896,5 @@ def export_catalogo_peliculas(request, musical_publication_id):
     build_doc(buffer)
     buffer.seek(0)
     return FileResponse(buffer, as_attachment=True, filename=f"CATÁLOGO_DE_PELICULAS_{titulo_catalogo}.pdf")
+
+

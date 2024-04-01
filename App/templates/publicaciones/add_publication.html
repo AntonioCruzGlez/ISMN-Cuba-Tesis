@@ -17,7 +17,7 @@
 
 <!-- Button on navbar -->
 {% block Offcanvas %}
-    <a class="btn btn-dark" href="{% url 'frontend' %}"><i class="fas fa-arrow-left"></i>&nbsp;&nbsp;Atrás</a>
+    <a class="btn btn-dark" href="{% url 'backend_publicaciones' %}"><i class="fas fa-arrow-left"></i>&nbsp;&nbsp;Atrás</a>
      <a class="btn btn-danger" href="{% url 'logout' %}" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="fas fa-sign-out-alt"></i>&nbsp;&nbsp;Cerrar Sesión</a>
     <hr>
     <a href="#" class="btn btn-dark">
@@ -88,8 +88,9 @@
                             <div class="input-group input-group-sm mb-3">
                                 <span class="input-group-text side-label-form justify-content-center"><i
                                         class="fas fa fa-hashtag"></i></span>
-                                <input type="text" class="form-control" name="prefijo-editor" id="prefijo-editor"
-                                       title="Número de prefijo del editor" disabled
+                                <input type="text" class="form-control readonly" name="prefijo-editor"
+                                       id="prefijo-editor"
+                                       title="Número de prefijo del editor" placeholder="Prefijo del Editor" readonly
                                         {% block Value-prefijo-editor %}{% endblock Value-prefijo-editor %}>
                             </div>
                         </div>
@@ -101,95 +102,217 @@
                                 <span class="input-group-text side-label-form justify-content-center">
                                     <i class="fas fa fa-hashtag"></i>
                                 </span>
-                                <input type="text" class="form-control" name="prefijo-publicacion"
-                                       id="prefijo-publicacion"
-                                       title="Número de prefijo de la publicación" disabled
+                                <input type="text" class="form-control readonly"
+                                       name="prefijo-publicacion"
+                                       id="prefijo-publicacion" placeholder="Prefijo de la publicación"
+                                       title="Número de prefijo de la publicación" readonly
                                         {% block Value-prefijo-publicacion %}{% endblock Value-prefijo-publicacion %}>
                             </div>
                         </div>
                     </div>
 
-                    <div class="input-group input-group-sm mb-3">
-                        <span class="input-group-text side-label-form">Fecha</span>
-                        <input type="date" class="form-control" maxlength="20" name="date_time" id="date_time" placeholder="Fecha de creación de la obra" required value="{% block Value-date_time %}{% endblock Value-date_time %}">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="input-group input-group-sm mb-3">
+                                <span class="input-group-text side-label-form justify-content-center">
+                                    <i class="fas fa fa-barcode"></i>
+                                </span>
+                                <input type="text" class="form-control readonly" name="ismn"
+                                       id="ismn" placeholder="ISMN"
+                                       title="ISMN de la publicación" readonly
+                                        {% block Value-ISMN %}{% endblock Value-ISMN %}>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="input-group input-group-sm mb-3">
-                        <label class="input-group-text ">Género Musical</label>
-                        <select class="form-select" name="gender" id="gender" required>
-                            {% block option %}
-                                <option value="" hidden>Seleccione un género musical</option>
-                            {% endblock %}
-                            <option disabled></option>
-                            <option>Danzón</option>
-                            <option>Bolero</option>
-                            <option>Popular Bailable</option>
-                            <option>Mambo</option>
-                            <option>ChaChaCha</option>
-                            <option>Rumba</option>
-                        </select>
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="input-group input-group-sm mb-3">
+                                <span class="input-group-text side-label-form justify-content-center"><i
+                                        class="fas fa fa-music"></i></span>
+                                <select class="form-select" name="gender" id="gender" required>
+                                    {% block Value-Gender %}
+                                        <option value="" hidden>Seleccione un género musical</option>
+                                    {% endblock Value-Gender %}
+                                    <option disabled></option>
+                                    <option>Danzón</option>
+                                    <option>Bolero</option>
+                                    <option>Popular Bailable</option>
+                                    <option>Mambo</option>
+                                    <option>ChaChaCha</option>
+                                    <option>Rumba</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-6">
+                            <div class="input-group input-group-sm mb-3">
+                                <span class="input-group-text side-label-form justify-content-center"><i
+                                        class="fas fa fa-calendar"></i></span>
+                                <input type="date" class="form-control" maxlength="40" name="date" id="date"
+                                       placeholder="dd/mm/aaaa" required
+                                        {% block Value-date %}{% endblock Value-date %}>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="form-group mb-3">
-                      <textarea class="form-control text-sm" name="letter_contain" maxlength="1000" id="letter_contain" rows="4" cols="6" placeholder="Letra de la cancion...">{% block Value-letter %}{% endblock Value-letter %}</textarea>
+                    <div class="form-group">
+                        <textarea class="form-control text-sm" name="note" maxlength="1000" id="note" rows="3"
+                                  placeholder="La descripción es opcional...">{% block Value-description %}{% endblock Value-description %}</textarea>
                     </div>
 
-                    <div class="form-group mb-3">
-                      <textarea class="form-control text-sm" name="description" maxlength="1000" id="letter_contain" rows="3" cols="5" placeholder="Descripcion de la obra es opcional...">{% block Value-description %}{% endblock Value-description %}</textarea>
+                    <hr style="height: 2px;">
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="mb-3">
+                                {% block Value-letter %}{% endblock Value-letter %}
+                                <div class="mb-3" style="font-size: 14px;"><i class="fa fa-cloud-upload-alt"></i>&nbsp;&nbsp;
+                                    {% block Title-Letter-Sub %}
+                                        Subir letra de la canción
+                                    {% endblock Title-Letter-Sub %}
+                                </div>
+                                <input type="file" class="form-control form-control-sm" name="publication_letter"
+                                       accept="application/pdf,application/msword,.doc,.docx,.pdf,.txt">
+                                <div class="form-text" style="font-size: 12px;">* Extensiones permitidas: word - pdf -
+                                    txt
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="mb-3">
+                                {% block Value-imagen %}{% endblock Value-imagen %}
+                                <div class="mb-3" style="font-size: 14px;"><i class="fa fa-cloud-upload-alt"></i>&nbsp;&nbsp;
+                                    {% block Title-Imagen-Sub %} Subir imagen de la
+                                        publicación {% endblock Title-Imagen-Sub %}
+                                </div>
+                                <input type="file" class="form-control form-control-sm" name="publication_image"
+                                       accept="image/*">
+                                <div class="form-text" style="font-size: 12px;">* Extensiones permitidas: jpg - png -
+                                    jpeg
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
 
-                    <div id="div_id_imagen" class="form-group">
-                        <label for="id_imagen">Imagen</label>
-                        <div><input type="file" name="imagen" id="id_imagen" accept="image/*" class="clearable-file-input form-control-file"></div>{% block Value-imagen %}{% endblock Value-imagen%}
-                    </div>
 
-                    <div class="d-grid gap-2 mt-3">
-
+                    <div class="d-flex flex-column gap-2 mt-3">
                         <!-- Add Button -->
-                        <button type="submit" class="btn btn-primary btn-sm">
-                            {% block Btn-content %} <i class="fas fa-plus">&nbsp;&nbsp;</i>Add {% endblock Btn-content %}
+                        <button type="submit" class="btn btn-primary btn-sm" id="btn-add">
+                            {% block Btn-content %} <i class="fas fa-plus">&nbsp;&nbsp;</i>
+                                Agregar {% endblock Btn-content %}
                         </button>
 
                         <!-- Reset button denied here -->
                         {% block Btn-reset %} {% endblock Btn-reset %}
 
                         <!-- Back Button -->
-                        <a href="{% url 'backend_editores' %}" class="btn btn-dark btn-sm"><i class="fas fa-chevron-left"></i>&nbsp;&nbsp;Back</a>
+                        <a href="{% url 'backend_publicaciones' %}" class="btn btn-dark btn-sm"><i
+                                class="fas fa-chevron-left"></i>&nbsp;&nbsp;Atrás</a>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 
+
     <script>
+        /* Notas
+        1- La cantidad de digitos que debe tener un ismn en total para Cuba son 13
+        2- La cantidad de digitos que deben sumar los prefijos de publicacion y editor son 8
+        3- El digito de control se calcula mediante este metodo http://www.grupoalquerque.es/mate_cerca/paneles_2012/168_ISBN2.pdf
+        */
+
         // Variables
+        // Selectores de los inputs en el formulario
         const editor_input = document.querySelector('.editor');
         const editor_prefijo_input = document.getElementById('prefijo-editor');
         const publicacion_prefijo_input = document.getElementById('prefijo-publicacion');
+        const ismn = document.getElementById('ismn');
+        // Cantidad de Publicaciones del editor antes de insertar la nueva publicacion
         let cant_public_editor;
-        let rango_prefijo_editor;
+        // Cantidad de digitos que ocupa el prefijo del editor en el ismn
         let cant_digitos_prefijo_editor;
+        // Prefijo del editor
+        let prefijo_editor;
+        // Prefijo con el formato correcto que generamos para la nueva publicacion que se esta insertando: 001,012,0002, etc
         let prefijo_publicacion;
+        // Valor numerico de la publicacion: 1,2,3,4,etc
         let valor_prefijo_public;
 
-        function formatear_prefijo(valor, rango_prefijo_editor, cant_digitos_prefijo_editor) {
-            let cant_digitos_public = 8 - cant_digitos_prefijo_editor;
-            let zeros = cant_digitos_public - valor.length;
+
+        // Funcion que formatea el prefijo_publicacion para que tenga el formato de ismn: 001,012,0002, etc
+        function formatear_prefijo(valor, cant_digitos_prefijo_companiero) {
+            // Cantidad de digitos que debe tener la publicacion segun las reglas ISMN
+            let cant_digitos = 8 - cant_digitos_prefijo_companiero;
+            // Cantidad de ceros que debe agregar al prefijo de la publicacion
+            let zeros = cant_digitos - valor.length;
+            // Retorna el valor de la publicacion listo para insertar en el ISMN
             return '0'.repeat(zeros) + valor
+        }
+
+        function digito_control(editor_prefijo, publicacion_prefijo) {
+            let sum = 39; // Esta es la suma de lote '979-0' aplicando el metodo de 9*1 + 7*3 + 9*1 + 0*3 = 39
+            let multiplicador = [1, 3]; /* Multiplicadores que se van alternando en cada digito de ambos prefijos
+                                            (Editor, Publicacion) para crear el digito de control */
+            let digit_control; // Puede tener valor minimo de 0 y maximo de 9
+
+
+            for (let i = 0; i < editor_prefijo.length; i++) {
+                if (i % 2 === 0) {
+                    sum += parseInt(editor_prefijo[i]) * multiplicador[0];
+                } else {
+                    sum += parseInt(editor_prefijo[i]) * multiplicador[1];
+                }
+            }
+
+            if (editor_prefijo.length % 2 !== 0) {
+                multiplicador = [3, 1];
+            }
+
+            for (let i = 0; i < publicacion_prefijo.length; i++) {
+                if (i % 2 === 0) {
+                    sum += parseInt(publicacion_prefijo[i]) * multiplicador[0];
+                } else {
+                    sum += parseInt(publicacion_prefijo[i]) * multiplicador[1];
+                }
+            }
+
+            for (let i = 0; i <= 9; i++) {
+                if ((sum + i) % 10 === 0) {
+                    digit_control = i;
+                    break;
+                }
+            }
+
+            return digit_control
+        }
+
+        function crear_ismn(editor_prefijo, publicacion_prefijo) {
+            let digit_validation = digito_control(editor_prefijo, publicacion_prefijo)
+            return '979-0' + '-' + editor_prefijo + '-' + publicacion_prefijo + '-' + digit_validation
         }
 
         editor_input.addEventListener('input', (e) => {
             {% for editor in editores %}
                 if (e.target.value === "{{ editor }}") {
-                    editor_prefijo_input.value = "Prefijo del Editor: {{ editor.prefijo }}";
+                    cant_digitos_prefijo_editor = '{{ editor.prefijo.rango.rango_superior }}'.length;
                     cant_public_editor = {{ editor.musical_publication_set.count }};
                     valor_prefijo_public = String(cant_public_editor + 1)
-                    rango_prefijo_editor = '{{ editor.prefijo.rango }}';
-                    cant_digitos_prefijo_editor = '{{ editor.prefijo.rango.rango_superior }}'.length
-                    prefijo_publicacion = formatear_prefijo(valor_prefijo_public, rango_prefijo_editor, cant_digitos_prefijo_editor);
+                    prefijo_publicacion = formatear_prefijo(valor_prefijo_public, cant_digitos_prefijo_editor);
+                    // En el excepcional caso que el prefijo del editor necesite un cero delante
+                    if ({{ editor.prefijo }} < 10) {
+                        prefijo_editor = formatear_prefijo('{{ editor.prefijo }}', prefijo_publicacion.length)
+                    } else prefijo_editor = '{{ editor.prefijo }}'
+                    editor_prefijo_input.value = "Prefijo del Editor: " + prefijo_editor;
                     publicacion_prefijo_input.value = "Prefijo de la publicación: " + prefijo_publicacion;
+                    ismn.value = crear_ismn(prefijo_editor, prefijo_publicacion)
                 }
             {% endfor %}
         })
+
+        {% block script-editor %}{% endblock script-editor %}
+
     </script>
+
 {% endblock content %}

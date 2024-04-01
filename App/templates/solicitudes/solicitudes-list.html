@@ -1,0 +1,226 @@
+{% extends 'editores/editores-list.html' %}
+
+{% block title %} Solicitudes de Inscripción {% endblock title %}
+
+<!-- Navbar content -->
+{% block navbar-content %}
+    <i class="fas fa-external-link-alt"></i>&nbsp;&nbsp;Solicitudes de Inscripción
+{% endblock navbar-content %}
+
+{% block btn-add %}{% endblock %}
+
+{% block Offcanvas %}
+    <a class="btn btn-dark" href="{% url 'backend_publicaciones' %}"><i class="fas fa-list"></i>&nbsp;&nbsp;Publicaciones</a>
+    <a class="btn btn-dark" href="{% url 'backend_editores' %}"><i class="fas fa-list"></i>&nbsp;&nbsp;Editores</a>
+    <a class="btn btn-dark" href="{% url 'frontend' %}"><i class="fas fa-arrow-left"></i>&nbsp;&nbsp;Inicio</a>
+    <a class="btn btn-danger" href="{% url 'logout' %}" data-bs-toggle="modal" data-bs-target="#exampleModal"><i
+            class="fas fa-sign-out-alt"></i>&nbsp;&nbsp;Cerrar Sesión</a>
+    <hr>
+    <a href="#" class="btn btn-dark">
+        <i class="fas fa-headset"></i>&nbsp;&nbsp; Ayuda
+    </a>
+{% endblock Offcanvas %}
+
+{% block title-table %}
+    <th style="width: 4%">ID</th>
+    <th style="width: 20%">Editor</th>
+    <th style="width: 25%">Fecha</th>
+    <th style="width: 25%">Tipo</th>
+    <th style="width: 20%">Estado</th>
+    <th style="width: 6%" colspan="2">Acciones</th>
+{% endblock title-table %}
+
+{% block for-data-table %}
+    {% for solicitud in solicitudes %}
+        <tr id="chk_td">
+            <td>{{ solicitud.id }}</td>
+            <td>{{ solicitud.editor|default:'-' }}</td>
+            <td>{{ solicitud.created_at }}</td>
+            <td>{{ solicitud.tipo }}</td>
+            {% if solicitud.status == 'Pendiente' %}
+                <td style="color: red"><b>{{ solicitud.status }}</b></td>
+            {% else %}
+                <td>{{ solicitud.status }}</td>
+            {% endif %}
+
+            <td>
+                <a class="btn btn-sm btn-info" title="Más Información" data-bs-toggle="modal" data-bs-target="#infoModal{{ solicitud.id }}">
+                    <i class="fas fa-info-circle"></i>
+                </a>
+            </td>
+            <td>
+                <a class="btn btn-sm btn-secondary" title="Eliminar Publicacion" data-bs-toggle="modal" data-bs-target="#deleteModal{{ solicitud.pk }}">
+                    <i class="fas fa-trash"></i>
+                </a>
+            </td>
+        </tr>
+
+        <div class="modal fade" id="deleteModal{{ solicitud.id }}" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h1 class="modal-title fs-5" id="deleteModalLabel"><i class="fas fa-trash-alt"></i>&nbsp;&nbsp;Eliminar Solicitud</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body text-center">
+                <div class="text-center text-danger"><i class="fas fa-times-circle fa-5x mb-4 mt-2"></i></div>
+                  <div class="text-center text-danger">
+                      <span>ESTÁS SEGURO QUE DESEAS ELIMINAR ESTA SOLICITUD ???</span>
+                      <div class="text-dark mt-3 mb-2 "><b>{{ solicitud.tipo }}: {{ solicitud.temporal.username }} </b></div>
+                  </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                  <a href="{% url 'delete_solicitud' solicitud.id %}" type="button"
+                     class="btn btn-outline-danger btn-sm">Eliminar</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal fade" id="infoModal{{ solicitud.id }}" tabindex="-1" aria-labelledby="infoModalLabel" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h1 class="modal-title fs-5" id="infoModalLabel"><i class="fas fa-info"></i>&nbsp;&nbsp;Información de la Solicitud.</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                  <h4 class="display-6 mb-3">{{ solicitud }}</h4>
+                  {% if solicitud.tipo == 'Solicitud-Inscripción' %}
+                      <div class="container_img mb-4" style="background-color: transparent;">
+                          <img class="card-img img_detail" src="{{ solicitud.temporal.imagenProfile }}" alt="imagen del solicitante">
+                      </div>
+                      <div class="container-fluid" style="font-size: large; text-align: left">
+                          <div class="row mb-1">
+                            <div class="col-12">
+                                <strong>Nombre de Usuario:</strong> &nbsp;&nbsp;{{ solicitud.temporal.username }}
+                            </div>
+                          </div>
+                          <hr>
+                          <div class="row mb-1">
+                            <div class="col-12">
+                                <strong>Teléfono:</strong> &nbsp;&nbsp;{{ solicitud.temporal.phone }}
+                            </div>
+                          </div>
+                          <hr>
+                          <div class="row mb-1">
+                            <div class="col-12">
+                                <strong>Correo:</strong> &nbsp;&nbsp;{{ solicitud.temporal.email }}
+                            </div>
+                          </div>
+                          <hr>
+                          <div class="row mb-1">
+                            <div class="col-12">
+                                <strong>Nombre:</strong> &nbsp;&nbsp;{{ solicitud.temporal.first_name }}
+                            </div>
+                          </div>
+                          <hr>
+                          <div class="row mb-1">
+                            <div class="col-12">
+                                <strong>Tipo de Editor:</strong> &nbsp;&nbsp;{{ solicitud.temporal.editorType }}
+                            </div>
+                          </div>
+                          <hr>
+                          <div class="row mb-1">
+                            <div class="col-12">
+                                <strong>Edad:</strong> &nbsp;&nbsp;{{ solicitud.temporal.age|default:'-' }}
+                            </div>
+                          </div>
+                          <hr>
+                          <div class="row mb-1">
+                            <div class="col-12">
+                                <strong>Apellido:</strong> &nbsp;&nbsp;{{ solicitud.temporal.last_name|default:'-' }}
+                            </div>
+                          </div>
+                          <hr>
+                          <div class="row mb-1">
+                            <div class="col-12">
+                                <strong>Dirección:</strong> &nbsp;&nbsp;{{ solicitud.temporal.address }}
+                            </div>
+                          </div>
+                          <hr>
+                          <div class="row mb-1">
+                            <div class="col-12">
+                                <strong>ID Tributaria:</strong> &nbsp;&nbsp;{{ solicitud.temporal.idTribute }}
+                            </div>
+                          </div>
+                          <hr>
+                          <div class="row mb-1">
+                            <div class="col-12">
+                                <strong>Descripción:</strong> &nbsp;&nbsp;{{ solicitud.temporal.note }}
+                            </div>
+                          </div>
+                      </div>
+                  {% else %}
+                      <h4 class="display-6 mb-3">{{ solicitud }}</h4>
+                      <div class="container_img mb-4" style="background-color: transparent;">
+                          <img class="card-img img_detail" src="{{ solicitud.temporal.imagen.url }}" alt="imagen musical">
+                      </div>
+                      <div class="container-fluid" style="font-size: large; text-align: left">
+                          <div class="row mb-1">
+                            <div class="col-12">
+                                <strong>Título:</strong> &nbsp;&nbsp;{{ solicitud.temporal.name }}
+                            </div>
+                          </div>
+                          <hr>
+                          <div class="row mb-1">
+                            <div class="col-12">
+                                <strong>Autor:</strong> &nbsp;&nbsp;{{ solicitud.temporal.autor }}
+                            </div>
+                          </div>
+                          <hr>
+                          <div class="row mb-1">
+                            <div class="col-12">
+                                <strong>Editor:</strong> &nbsp;&nbsp;{{ solicitud.temporal.editor }}
+                            </div>
+                          </div>
+                          <hr>
+                          <div class="row mb-1">
+                            <div class="col-12">
+                                <strong>ISMN (Generado):</strong> &nbsp;&nbsp;{{ solicitud.temporal.ismn }}
+                            </div>
+                          </div>
+                          <hr>
+                          <div class="row mb-1">
+                            <div class="col-12">
+                                <strong>Género Musical:</strong> &nbsp;&nbsp;{{ solicitud.temporal.gender }}
+                            </div>
+                          </div>
+                          <hr>
+                          <div class="row mb-1">
+                            <div class="col-12">
+                                <strong>Letra:</strong> &nbsp;&nbsp;<a href="/media/{{ solicitud.temporal.letra }}">{{ solicitud.temporal.letra_base_name }}</a>
+                            </div>
+                          </div>
+                          <hr>
+                          <div class="row mb-1">
+                            <div class="col-12">
+                                <strong>Descripción:</strong> &nbsp;&nbsp;{{ solicitud.temporal.description }}
+                            </div>
+                          </div>
+                          <hr>
+                          <div class="row mb-1">
+                            <div class="col-12">
+                                <strong>Fecha de creación:</strong> &nbsp;&nbsp;{{ solicitud.temporal.date_time }}
+                            </div>
+                          </div>
+                          <hr>
+                          <div class="row mb-1">
+                            <div class="col-12">
+                                <strong>Fecha de publicación:</strong> &nbsp;&nbsp;{{ solicitud.temporal.created_at }}
+                            </div>
+                          </div>
+                      </div>
+                  {% endif %}
+              </div>
+              <div class="modal-footer justify-content-center">
+                <button type="button" style="border: transparent; background-color: transparent" data-bs-dismiss="modal">
+                    <a href="#" type="button" class="btn btn-outline-dark"><i class="fas fa-file-export "></i>&nbsp;&nbsp;Aceptar</a>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+    {% endfor %}
+{% endblock for-data-table %}

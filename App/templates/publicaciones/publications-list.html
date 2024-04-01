@@ -12,7 +12,7 @@
 {% endblock btn-add %}
 
 {% block Offcanvas %}
-    <a class="btn btn-dark" href="#"><i class="fas fa-list"></i>&nbsp;&nbsp;Solicitudes</a>
+    <a class="btn btn-dark" href="{% url 'backend_solicitudes' %}"><i class="fas fa-list"></i>&nbsp;&nbsp;Solicitudes</a>
     <a class="btn btn-dark" href="{% url 'backend_editores' %}"><i class="fas fa-list"></i>&nbsp;&nbsp;Editores</a>
     <a class="btn btn-dark" href="{% url 'frontend' %}"><i class="fas fa-arrow-left"></i>&nbsp;&nbsp;Inicio</a>
     <a class="btn btn-danger" href="{% url 'logout' %}" data-bs-toggle="modal" data-bs-target="#exampleModal"><i
@@ -45,7 +45,8 @@
         <td>{{ publicacion.date_time }}</td>
         <td>{{ publicacion.gender }}</td>
         <td>
-            <a href="/musical_publication/{{ publicacion.id }}" class="btn btn-sm btn-primary" title="Editar Publicacion">
+            <a href="{% url 'musical_publication' publicacion.id %}" class="btn btn-sm btn-primary"
+               title="Editar Publicacion">
                 <i class="fas fa-pen"></i>
             </a>
         </td>
@@ -78,7 +79,8 @@
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
-            <a href="/delete_editor/{{ publicacion.id }}" type="button" class="btn btn-outline-danger btn-sm">Eliminar</a>
+              <a href="{% url 'delete_musical_publication' publicacion.id %}" type="button"
+                 class="btn btn-outline-danger btn-sm">Eliminar</a>
           </div>
         </div>
       </div>

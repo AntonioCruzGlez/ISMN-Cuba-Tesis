@@ -1,0 +1,45 @@
+body {
+    background: #f1f1f1
+}
+
+#logo {
+    width: 15%;
+    aspect-ratio: 345/446;
+    display: block;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+hr {
+    height: 3px;
+    width: 80%;
+    border: 0;
+    background-color: #23406c;
+}
+
+h1, h3, footer {
+    display: flex;
+    justify-content: center;
+    color: #2d2d2b;
+    font-family: 'Onest', sans-serif;
+    font-weight: 400;
+    margin: 30px 10%;
+}
+
+.box {
+    display: flex;
+    justify-content: center;
+    width: 20%;
+    min-width: 200px;
+    border: solid #23406c 3px;
+    border-radius: 10px;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+.code {
+    font-family: 'Onest', sans-serif;
+    font-weight: 600;
+    font-size: 25px;
+    margin: 10px;
+}

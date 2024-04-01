@@ -9,19 +9,24 @@ function validateEmail(email){
 
 function validateAll() {
 
-    var username = $("#username").val();
-    var password = $("#userPassword").val();
-    var phone = $("#phone").val();
-    var email = $("#email").val();
-    var editor_type = $("#editorType").val();
-    var age = $("#age").val();
-    var first_name = $('#first_name').val();
-    var last_name = $('#last_name').val();
-    var address = $("#address").val();
-    var file = $("#file").val();
-    var idTribute = $("#idTribute").val();
-    var title = $("#title").val()
-
+    // User Data
+    let username = $("#username").val();
+    let password = $("#userPassword").val();
+    let phone = $("#phone").val();
+    let email = $("#email").val();
+    let editor_type = $("#editorType").val();
+    let age = $("#age").val();
+    let first_name = $('#first_name').val();
+    let last_name = $('#last_name').val();
+    let address = $("#address").val();
+    // Publication Data
+    let idTribute = $("#idTribute").val();
+    let title = $("#title").val();
+    let autor = $("#autor").val();
+    let editor = $("input[name*='editor']").val();
+    let genero = $("#gender").val();
+    let date = $("#date").val();
+    let letra = $("input[name*='publication_letter']").val()
 
     if (username === '') {
         swal("Opsss !", "Inserte su nombre de usuario.", "error");
@@ -38,8 +43,7 @@ function validateAll() {
     } else if (editor_type === '') {
         swal("Opsss !", "Seleccione un tipo de Editor.", "error");
         return false;
-    }
-    else if (!(validateEmail(email))) {
+    } else if (email && !(validateEmail(email))) {
         swal("Opsss !", "Inserte un correo válido.", "error");
         return false;
     } else if (editor_type === 'Independiente' && age === '') {
@@ -54,14 +58,27 @@ function validateAll() {
     } else if (address === '') {
         swal("Opss !", "La dirección está vacia.", "error")
         return false;
-    } else if (file === '') {
-        swal("Opss!", "Se ha olvidado la letra de la canción.", "error");
+    } else if (letra === '' && document.querySelector('div.edicion') == null) {
+        swal("Opss!", "Se ha olvidado la letra de la canción. Seleccione un archivo word, " +
+            "pdf o txt donde tenga guardada la letra de la obra musical", "error");
         return false;
     } else if (idTribute === '') {
         swal("Opss!", "Se ha olvidado el número de identificación tributaria.", "error");
         return false;
     } else if (title === '') {
         swal("Opss!", "Se ha olvidado el título de la obra.", "error");
+        return false;
+    } else if (autor === '') {
+        swal("Opss!", "Se ha olvidado el nombre del autor.", "error");
+        return false;
+    } else if (editor === '') {
+        swal("Opss!", "Se ha olvidado de elegir un editor.", "error")
+        return false;
+    } else if (genero === '') {
+        swal("Opss!", "Se ha olvidado de elegir un género musical.", "error")
+        return false;
+    } else if (date === '') {
+        swal("Opss!", "Se ha olvidado de elegir la fecha de creación de la obra musical.", "error")
         return false;
     }
     else {
@@ -75,9 +92,9 @@ $("#btn-add, #btn-send").bind("click", validateAll);
 $(document).ready(function (){
 
     // Only letter
-    $('#first_name, #last_name').keyup(function () {
+    $('#first_name, #last_name, #autor').keyup(function () {
         var letter = $(this).val();
-        var allow = letter.replace(/[^a-zA-Z _]/g, '');
+        var allow = letter.replace(/[^a-zA-Záéíóú _]/g, '');
         $(this).val(allow);
     });
 
@@ -99,7 +116,7 @@ $(document).ready(function (){
 });
 
 // 3) Script to put First Letter capitalized
-$("#autor, #first_name, #last_name, #address").keyup(function () {
+$("#autor, #first_name, #last_name, #address, #autor").keyup(function () {
     var txt = $(this).val();
     $(this).val(txt.replace(/^(.)|\s(.)/g, function ($1){return $1.toUpperCase( );}));
 });
@@ -122,7 +139,7 @@ $("#age, #idTribute").keyup(function () {
 // 6) Phone mask
 $(document).ready(function (){
     $('#phone').inputmask("+535-999-99-99", { "onincomplete": function () {
-        swal('Opsss !', 'Incomplete phone. Review', 'error');
+            swal('Opsss !', 'Número de teléfono incompleto. Revise por favor', 'error');
         return false;
         }
     });
@@ -160,50 +177,16 @@ setInterval(function (){
 }, 500);
 
 // 11) If not there editors, show a message
-var verify = $("#chk_td").length;
-if (verify == 0) {
+let verify = $("#chk_td").length;
+if (verify === 0) {
     $("#no-data").text("No se ha encontrado");
 }
 
-// 12) ISMN mask
-$(document).ready(function (){
-    let ismn_init = "\\97\\9-0"
-    $('#ismn').inputmask({"mask": ismn_init + "-9999-9999-9"},
-        { "onincomplete": function () {
-        swal('Opsss !', 'ISMN incompleto. Revise', 'error');
-        return false;
-        }
-    });
-});
-
 // 13) Clear the form if this was closed
-$("#sendemailtestModal").on('hidden.bs.modal', function (){
-    $("#sendemailtestModal form")[0].reset();
-})
+// $("#sendemailtestModal").on('hidden.bs.modal', function (){
+//     $("#sendemailtestModal form")[0].reset();
+// })
 
-// 14)  Ajax Spinner
-jQuery(function($) {
-    $(document).ajaxSend(function (){
-        $("#bg-spinner").fadeIn(500);
-    });
-
-    $("#btn-send").click(function (){
-        $.ajax({
-            type: 'GET',
-            success: function (data) {
-                var element = document;
-                var html = element.outerHTML;
-                var data = { html: html };
-                var json = JSON.stringify(data)
-                var d = $.parseJSON(json);
-            }
-        }).done(function (){ // Una vez termine ajax correctamente elimina el spinner en 15s.
-            setTimeout(function (){
-                $("#bg-spinner").fadeOut(500);
-            },40000);
-        });
-    });
-});
 
 // 15 Close modal (after 'send button is clicked')
 $("#btn-send").click(function (){
@@ -235,7 +218,8 @@ function toggleFunction(){
     }
 }
 
-// Function to activate an age field editor
+// 17 Function to activate an age field editor
+// To Add
 $("#editorType").change( (e) => {
 
     const age = $('#age')
@@ -250,5 +234,33 @@ $("#editorType").change( (e) => {
         last_name.val('');
         age.attr('disabled', 'disabled');
         last_name.attr('disabled', 'disabled');
+    }
+})
+
+// To Edit
+$(document).ready(function () {
+    let editor_type = document.getElementById('editorType')
+    const age = $('#age')
+    const last_name = $('#last_name')
+    if (editor_type.children[0].label === 'Independiente') {
+        age.removeAttr('disabled');
+        last_name.removeAttr('disabled');
+    } else {
+        $("#age").val("");
+    }
+})
+
+// 18 Prevent to change the editor's prefijo
+$('#editorPrefijo').mousedown((e) => {
+    if (e.target.baseURI.includes('/editor/')) {
+        e.preventDefault();
+        swal('Error', 'No es posible editar o cambiar los prefijos asignados a los editores', 'error');
+    }
+})
+
+// 19 Boostrap's Spinner to sending email
+$('#btn-add').click((e) => {
+    if (validateAll()) {
+        $("#preloader").css('animation', 'preloader_forever 1.2s forwards infinite');
     }
 })
