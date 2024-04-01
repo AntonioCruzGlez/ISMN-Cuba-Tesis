@@ -258,6 +258,7 @@ body {
     height: 20px;
     text-align: center;
     margin-left: -5px;
+    font-weight: bold;
 }
 
 .total {
@@ -266,6 +267,18 @@ body {
 
 .pending {
     background-color: red;
+}
+
+.plus_nine {
+    position: absolute;
+    border-radius: 42%;
+    font-size: 13px;
+    font-weight: bold;
+    width: 26px;
+    height: 20px;
+    text-align: center;
+    margin-left: -7px;
+    background: red;
 }
 
 /* -------------------------------

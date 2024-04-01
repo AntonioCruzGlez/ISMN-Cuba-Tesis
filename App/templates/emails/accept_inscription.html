@@ -1,0 +1,17 @@
+{% extends 'emails/mail_confirmation_client.html' %}
+
+{% block title %}
+    <h1>Hola {{ nombre }} &#128400; <br> Su solicitud de inscripción ya ha sido aprobada !</h1>
+{% endblock title %}
+
+{% block cuerpo %}
+    <section>
+        <h3>Recuerde su nombre de usuario y contraseña:</h3>
+        <div style="width: 50%; min-width: 400px; border: solid #23406c 3px; border-radius: 10px;
+                    margin: 0 auto 25px auto; padding: 10px ">
+            <p style="text-align: center" class="code">Nombre de usuario: {{ username }}</p>
+            <p style="text-align: center" class="code">Contraseña: {{ password }}</p>
+        </div>
+        <hr>
+    </section>
+{% endblock cuerpo %}

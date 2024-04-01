@@ -1,6 +1,7 @@
-django
+django~=4.2.5
 django-jazzmin
-pillow
+pillow~=10.0.0
 coverage
 django-bootstrap-v5
-reportlab
+reportlab~=4.0.9
+python-barcode

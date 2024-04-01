@@ -7,8 +7,12 @@
     <i class="fas fa-music"></i>&nbsp;&nbsp;Publicaciones Musicales
 {% endblock navbar-content %}
 
+<!-- SweetAlert (frontend) -->
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+
 {% block btn-add %}
-    <a href="{% url 'add_musical_publicaction' %}" class="btn btn-outline-primary btn-sm"><i class="fas fa-plus"></i>&nbsp;&nbsp; Añadir Publicación</a>
+    <a href="{% url 'add_musical_publicaction' %}" class="btn btn-outline-primary btn-sm "><i class="fas fa-plus"></i>&nbsp;&nbsp;Añadir Publicación</a>
+    <a href="{% url 'export_publications_list' %}"  class="btn btn-outline-primary btn-sm "><i class="fas fa-file-export "></i>&nbsp;&nbsp;Exportar Tabla</a>
 {% endblock btn-add %}
 
 {% block Offcanvas %}
@@ -45,7 +49,11 @@
         <td>{{ publicacion.date_time }}</td>
         <td>{{ publicacion.gender }}</td>
         <td>
+<<<<<<< HEAD
             <a href="{% url 'musical_publication' publicacion.id %}" class="btn btn-sm btn-primary"
+=======
+            <a href="{% url 'musical_publication' publicacion.id %}" id="edit_public" class="btn btn-sm btn-primary"
+>>>>>>> Rama-Publicaciones
                title="Editar Publicacion">
                 <i class="fas fa-pen"></i>
             </a>
@@ -56,9 +64,9 @@
             </a>
         </td>
         <td>
-            <a class="btn btn-sm btn-secondary" title="Eliminar Publicacion" data-bs-toggle="modal" data-bs-target="#deleteModal{{ publicacion.pk }}">
+            <button class="btn btn-sm btn-secondary" title="Eliminar Publicacion" data-bs-toggle="modal" data-bs-target="#deleteModal{{ publicacion.pk }}">
                 <i class="fas fa-trash"></i>
-            </a>
+            </button>
         </td>
     </tr>
 
@@ -126,6 +134,12 @@
                   <hr>
                   <div class="row mb-1">
                     <div class="col-12">
+                        <strong>Código de barras:</strong> &nbsp;&nbsp;<a href="/media/{{ publicacion.barcode }}">{{ publicacion.barcode_base_name }}</a>
+                    </div>
+                  </div>
+                  <hr>
+                  <div class="row mb-1">
+                    <div class="col-12">
                         <strong>Prefijo:</strong> &nbsp;&nbsp;{{ publicacion.prefijo }}
                     </div>
                   </div>
@@ -177,3 +191,33 @@
     </div>
 {% endfor %}
 {% endblock %}
+
+{% block pagination %}
+    <nav class="mt-4" aria-label="Page navigation example">
+        {% if publicaciones.has_other_pages %}
+            <ul class="pagination justify-content-left">
+            {% if publicaciones.has_previous %}
+                <a href="?page=1" class="btn btn-outline-primary mb-4" style="width: auto; border-radius: 1px; border: 1px solid #d3d3d3">Primera</a>
+                <li class="page-item"><a class="page-link" href="?page={{ publicaciones.previous_page_number }}"><i class="fas fa-angle-double-left"></i></a></li>
+            {% else %}
+                <li class="page-item disabled"></li>
+            {% endif %}
+
+            {% for i in publicaciones.paginator.page_range %}
+                {% if publicaciones.number == i %}
+                    <li class="page-item active"><span class="page-link">{{ i }}<span class="sr-only"></span></span></li>
+                {% else %}
+                    <li class="page-item"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
+                {% endif %}
+            {% endfor %}
+
+            {% if publicaciones.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ publicaciones.next_page_number }}"><i class="fas fa-angle-double-right"></i></a></li>
+                <a href="?page={{ publicaciones.paginator.num_pages }}" class="btn btn-outline-primary mb-4" style="width: auto; border-radius: 1px; border: 1px solid #d3d3d3; border-left: none;">Última</a>
+            {% else %}
+                <li class="page-item disabled"></li>
+            {% endif %}
+            </ul>
+        {% endif %}
+    </nav>
+{% endblock pagination %}

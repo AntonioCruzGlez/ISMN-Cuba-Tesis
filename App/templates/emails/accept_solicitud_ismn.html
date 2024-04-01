@@ -1,0 +1,13 @@
+{% extends 'emails/mail_confirmation_client.html' %}
+
+{% block title %}
+    <h1>Hola {{ nombre }} &#128400; <br> Su solicitud ISMN ya ha sido aprobada !</h1>
+{% endblock title %}
+
+{% block cuerpo %}
+    <section>
+        <p class="display-6" style="text-align: center">El adjunto de este correo contiene un reporte de su publicación con el ISMN
+            solicitado, código de barras y otras informaciones</p>
+        <hr>
+    </section>
+{% endblock cuerpo %}

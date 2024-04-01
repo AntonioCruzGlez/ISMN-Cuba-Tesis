@@ -1,14 +1,34 @@
 import base64
+<<<<<<< HEAD
 from datetime import datetime
 from random import randint
 from smtplib import SMTPServerDisconnected
 
 from PIL import Image as PILImage, ImageDraw
+=======
+import os
+from datetime import datetime
+from email import encoders
+from email.mime.base import MIMEBase
+from random import randint
+from smtplib import SMTPServerDisconnected, SMTPAuthenticationError
+from PIL import Image as PILImage
+from barcode import EAN13
+from barcode.writer import ImageWriter
+>>>>>>> Rama-Publicaciones
 from django.contrib.auth.models import User
+from django.core.files import File
+from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from pathlib import Path
 
+<<<<<<< HEAD
+=======
+from django.utils.datastructures import MultiValueDictKeyError
+from reportlab.pdfgen.canvas import Canvas
+
+>>>>>>> Rama-Publicaciones
 from App.models import (Editor, Musical_Publication, Registered_Data, PrefijoEditor, PrefijoPublicacion,
                         Rango_Prefijo_Editor, Rango_Prefijo_Publicacion, Solicitud)
 from django.views.decorators.cache import cache_control
@@ -25,11 +45,18 @@ from django.http import FileResponse
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.lib import colors
+<<<<<<< HEAD
 from reportlab.platypus import Table, TableStyle, Image
+=======
+from reportlab.platypus import Table, TableStyle, Image, Frame, PageTemplate, PageBreak
+>>>>>>> Rama-Publicaciones
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import inch
-from reportlab.lib.pagesizes import A4, letter
+from reportlab.lib.pagesizes import A4, letter, landscape
+
+# ================= VARIABLES TEMPORALES =================
+from djangoProject.settings import MEDIA_ROOT, BASE_DIR
 
 # ================= VARIABLES TEMPORALES =================
 datos = QueryDict
@@ -126,6 +153,10 @@ def generate_prefijo_publicacion(valor):
 def register_user(request):
     if request.method == 'POST':
         # Check if email exists in BD
+<<<<<<< HEAD
+=======
+        username = request.POST['username']
+>>>>>>> Rama-Publicaciones
         email = request.POST['email']
         phone = request.POST['phone']
         if Registered_Data.objects.filter(email=email).exists():
@@ -134,6 +165,12 @@ def register_user(request):
         elif Registered_Data.objects.filter(phone=phone).exists():
             messages.error(request, "Este teléfono ya ha sido registrado en nuestra Base de Datos")
             return HttpResponseRedirect('/login')
+<<<<<<< HEAD
+=======
+        elif Registered_Data.objects.filter(user_name=username).exists():
+            messages.error(request, "Este nombre de usuario ya ha sido registrado en nuestra Base de Datos")
+            return HttpResponseRedirect('/login')
+>>>>>>> Rama-Publicaciones
         # ===========================
         else:
             if request.POST.get('username') \
@@ -152,7 +189,16 @@ def register_user(request):
                     # Agregar la informacion inicial para que pueda ser leida por el "src" de <img> en el html
                     imagen_extension = request.FILES['imagenProfile'].content_type
                     datos['imagenProfile'] = f"data:{imagen_extension};base64," + datos['imagenProfile']
+<<<<<<< HEAD
                 confirmation_code = send_email(request)
+=======
+                else:
+                    with open(f"{MEDIA_ROOT}\profile_default.png", "rb") as image_profile:
+                        datos['imagenProfile'] = f"data:png;base64," + base64.b64encode(image_profile.read()).decode()
+                        image_profile.close()
+
+                confirmation_code = send_code_confirmation(request)
+>>>>>>> Rama-Publicaciones
                 datos['code_confirmation'] = confirmation_code
                 request.session['datos'] = datos
                 return render(request, 'registration/email_confirmation.html')
@@ -174,13 +220,20 @@ def email_confirmation(request):
             solicitud.status = 'Pendiente'
             solicitud.temporal = request.session.get('datos')
             solicitud.save()
+<<<<<<< HEAD
             # LINEA PARA TRANSFORMAR DE BASE64 A IMAGE
             # PILImage.open(io.BytesIO(base64.b64decode(request.session.get('datos')['imagenProfile'])))
+=======
+>>>>>>> Rama-Publicaciones
             messages.success(request, 'Su solicitud se ha enviado correctamente, le notificaremos a su correo '
                                       'cuando haya sido aceptada.')
             return HttpResponseRedirect('/')
     else:
         return render(request, 'registration/email_confirmation.html')
+<<<<<<< HEAD
+=======
+
+>>>>>>> Rama-Publicaciones
 
 # ================= SECCIÓN DEL USUARIO (EDITOR) =================
 # Function to render the Home Page for everybody
@@ -208,8 +261,9 @@ def backend_editores(request):
     paginator = Paginator(all_editor_list, 4)
     page = request.GET.get('page')
     all_editor = paginator.get_page(page)
-
-    return render(request, 'editores/editores-list.html', {"editores": all_editor})
+    solicitudes_pendientes = Solicitud.objects.filter(status='Pendiente').order_by('created_at')
+    return render(request, 'editores/editores-list.html', {"editores": all_editor,
+                                                           'solicitudes_pendientes': solicitudes_pendientes})
 
 
 # Function to render publication's lists
@@ -228,8 +282,166 @@ def backend_publicaciones(request):
     paginator = Paginator(all_publication_list, 4)
     page = request.GET.get('page')
     all_publication = paginator.get_page(page)
+    solicitudes_pendientes = Solicitud.objects.filter(status='Pendiente').order_by('created_at')
+    return render(request, 'publicaciones/publications-list.html', {"publicaciones": all_publication,
+                                                                    'solicitudes_pendientes': solicitudes_pendientes})
 
-    return render(request, 'publicaciones/publications-list.html', {"publicaciones": all_publication})
+
+# Function to render las listas de solicitudes
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+@login_required(login_url="login")
+def backend_solicitudes(request):
+    if 'q' in request.GET:
+        q = request.GET['q']
+        all_solicitudes_list = Solicitud.objects.filter(
+            Q(tipo__icontains=q) | Q(editor__user__username__icontains=q) |
+            Q(status__icontains=q)
+        ).order_by('-created_at')
+    else:
+        all_solicitudes_list = Solicitud.objects.all().order_by('-created_at')
+
+    paginator = Paginator(all_solicitudes_list, 4)
+    page = request.GET.get('page')
+    all_solicitudes = paginator.get_page(page)
+    solicitudes_pendientes = Solicitud.objects.filter(status='Pendiente').order_by('created_at')
+    return render(request, 'solicitudes/solicitudes-list.html', {"solicitudes": all_solicitudes,
+                                                                 'solicitudes_pendientes': solicitudes_pendientes})
+
+
+def guardar_imagen_base64(base64_string, name):
+    # Extraer el base64 y la extension de la imagen
+    header, base64_data = base64_string.split(';base64,')
+
+    if 'jpg' in header or 'jpeg' in header:
+        extension = header.split('/')[-1]
+    elif 'png' in header:
+        extension = header.split(':')[-1]
+    else:
+        return ''
+
+    # Decodificar la cadena base64 en una imagen
+    image_data = base64.b64decode(base64_data)
+
+    # Crear una imagen PIL desde los datos decodificados
+    image = PILImage.open(io.BytesIO(image_data))
+    # Crear un InMemoryUploadedFile a partir de la imagen PIL
+    image_io = io.BytesIO()
+    image.save(image_io, format=extension.upper())
+    image_file = InMemoryUploadedFile(image_io, None, f'{name}_image.{extension}',
+                                      f'image/{extension}', image_io.tell(), None)
+    return image_file
+
+
+# Function to Accept an Inscription
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+@login_required(login_url="login")
+def accept_inscription(request, solicitud_id):
+    solicitud = Solicitud.objects.get(id=solicitud_id)
+    prefijo_editor = generate_prefijo_editor(solicitud.temporal['editorPrefijo'])
+    user = User()
+    editor = Editor()
+    user.username = solicitud.temporal['username']
+    user.set_password(solicitud.temporal['password'])
+    user.first_name = solicitud.temporal['first_name']
+    user.email = solicitud.temporal['email']
+    if solicitud.temporal['editorType'] == 'Independiente':
+        user.last_name = solicitud.temporal['last_name']
+        editor.age = solicitud.temporal['age']
+    editor.user = user
+    editor.phone = solicitud.temporal['phone']
+    editor.prefijo = prefijo_editor
+    editor.type = solicitud.temporal['editorType']
+    # PARA TRANSFORMAR DE BASE64 A IMAGE
+    imagen = guardar_imagen_base64(solicitud.temporal['imagenProfile'], user.first_name)
+    editor.image_profile = imagen
+    editor.note = solicitud.temporal['note']
+    editor.directions = solicitud.temporal['address']
+    editor.id_tribute = solicitud.temporal['idTribute']
+    solicitud.editor = editor
+    solicitud.status = 'Atendido'
+    contact = Registered_Data()
+    contact.email = user.email
+    contact.phone = editor.phone
+    contact.user_name = user.username
+    correo = send_info_inscripcion(nombre=user.first_name, user_email=user.email,
+                                   username=user.username, password=solicitud.temporal['password'])
+    solicitud.temporal = {}
+    if correo:
+        user.save()
+        editor.save()
+        solicitud.save()
+        contact.save()
+        messages.success(request,
+                         f"Se ha aceptado la solicitud de inscripción y se ha notificado a {user.first_name} a "
+                         f"su correo. Ahora {user.first_name} ya "
+                         f"puede realizar solicitudes ISMN !")
+
+    else:
+        messages.error(request, 'Ha ocurrido un error al intentar notificar al correo del cliente, pruebe más tarde')
+    return HttpResponseRedirect('/backend_solicitudes')
+
+
+# Reformat the path to files since their names
+def reformat_path(path, ruta_pathlib):
+    part_path = path.split('/')[2:]  # Extrayendo /temp/nombre_del_file.extension
+    return Path(ruta_pathlib, part_path[0], part_path[1])
+
+
+# Function to Accept an Inscription
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+@login_required(login_url="login")
+def accept_ismn_solicitud(request, solicitud_id):
+    # Variables
+    solicitud = Solicitud.objects.get(id=solicitud_id)
+    publicacion = Musical_Publication()
+    prefijo_str_publicacion = solicitud.temporal['ismn'].split('-')[3]
+    publicacion_prefijo = generate_prefijo_publicacion(prefijo_str_publicacion)
+    ruta_letra_publicacion = reformat_path(solicitud.temporal['publication_letra'], MEDIA_ROOT)
+    if solicitud.temporal['publication_image']:
+        ruta_imagen_publicacion = reformat_path(solicitud.temporal['publication_image'], MEDIA_ROOT)
+    else:
+        ruta_imagen_publicacion = Path(f'{MEDIA_ROOT}\default.jpg')
+
+    # Asignacion y salvas
+    publicacion.name = solicitud.temporal['title']
+    publicacion.autor = solicitud.temporal['autor']
+    publicacion.editor = solicitud.editor
+    publicacion.prefijo = publicacion_prefijo
+    publicacion.ismn = solicitud.temporal['ismn']
+    barcode_rute, barcode_io = generate_barcode(publicacion.ismn, publicacion.name)
+    publicacion.description = solicitud.temporal['note']
+    publicacion.date_time = datetime.strptime(solicitud.temporal['date'], '%Y-%m-%d')
+    publicacion.gender = solicitud.temporal['gender']
+    with open(ruta_letra_publicacion, 'rb') as letra_file:
+        publicacion.letra.save(f'{ruta_letra_publicacion.stem}.{ruta_letra_publicacion.suffix}',
+                               File(letra_file), save=True)
+        letra_file.close()
+
+    if solicitud.temporal['publication_image']:
+        with open(ruta_imagen_publicacion, 'rb') as image_file:
+            publicacion.imagen.save(f'{ruta_imagen_publicacion.stem}.{ruta_imagen_publicacion.suffix}',
+                                    File(image_file), save=True)
+            image_file.close()
+    publicacion.barcode.save(f'{barcode_rute.stem}{barcode_rute.suffix}', File(barcode_io), save=True)
+    # Enviar email de aceptacion
+    email_send = send_solicitud_ismn_accepted(request.user, publicacion)
+    solicitud.status = 'Atendido'
+    # Eliminando datos temporales
+    if solicitud.temporal['publication_image']:
+        os.remove(f"{BASE_DIR}\{solicitud.temporal['publication_image']}")
+    os.remove(f"{BASE_DIR}\{solicitud.temporal['publication_letra']}")
+    del solicitud.temporal['publication_image']
+    del solicitud.temporal['csrfmiddlewaretoken']
+    publicacion.save()
+    solicitud.save()
+    if email_send:
+        messages.success(request, f"Se ha aceptado la solicitud ISMN y se ha notificado a {solicitud.editor} a "
+                                  f"su correo.")
+        return HttpResponseRedirect('/backend_solicitudes')
+    else:
+        messages.error(request,
+                       "Ha ocurrido un error al intentar notificar al correo del editor. Por favor contactelo.")
+        return HttpResponseRedirect('/backend_solicitudes')
 
 
 # Function to render las listas de solicitudes
@@ -256,8 +468,8 @@ def backend_solicitudes(request):
 @login_required(login_url="login")
 def add_editor(request):
     if request.method == 'POST':
-
         # Check if email exist in BD
+        username = request.POST['username']
         email = request.POST['email']
         phone = request.POST['phone']
         if Registered_Data.objects.filter(email=email).exists():
@@ -266,6 +478,12 @@ def add_editor(request):
         elif Registered_Data.objects.filter(phone=phone).exists():
             messages.error(request, "Este teléfono ya ha sido registrado en nuestra Base de Datos")
             return HttpResponseRedirect('/backend')
+<<<<<<< HEAD
+=======
+        elif Registered_Data.objects.filter(user_name=username).exists():
+            messages.error(request, "Este nombre de usuario ya ha sido registrado en nuestra Base de Datos")
+            return HttpResponseRedirect('/login')
+>>>>>>> Rama-Publicaciones
         # ===========================
         else:
             if request.POST.get('username') \
@@ -280,7 +498,7 @@ def add_editor(request):
                 editor = Editor()
                 user = User()
                 user.username = request.POST.get('username')
-                user.password = request.POST.get('password')
+                user.set_password(request.POST.get('password'))
                 user.first_name = request.POST.get('first_name')
                 editor.phone = request.POST.get('phone')
                 user.email = request.POST.get('email')
@@ -294,12 +512,13 @@ def add_editor(request):
                 editor.user = user
                 editor.prefijo = generate_prefijo_editor(request.POST.get('editorPrefijo'))
                 editor.note = request.POST.get('note')
-                editor.image_profile = request.FILES.get('imagenProfile')
+                if request.FILES.get('imagenProfile'):
+                    editor.image_profile = request.FILES.get('imagenProfile')
                 user.save()
                 editor.save()
-
                 # Register email and phone inside BD
                 contact = Registered_Data()
+                contact.user_name = user.username
                 contact.email = email
                 contact.phone = phone
                 contact.save()
@@ -307,8 +526,13 @@ def add_editor(request):
 
                 messages.success(request, "Editor añadido correctamente !")
                 return HttpResponseRedirect('/backend')
-    else:
-        return render(request, "editores/add.html")
+    elif request.method == 'GET':
+        if Solicitud.objects.filter(status='Pendiente').filter(tipo='Solicitud-Inscripción').exists():
+            messages.error(request, 'No es posible añadir un editor en este momento. '
+                                    'Atienda las solicitudes de inscripción que han sido enviadas y luego regrese.')
+            return HttpResponseRedirect('/backend')
+        else:
+            return render(request, "editores/add.html")
 
 
 # Function to delete Editor
@@ -316,6 +540,11 @@ def add_editor(request):
 @login_required(login_url="login")
 def delete_editor(request, editor_id):
     editor = Editor.objects.get(id=editor_id)
+<<<<<<< HEAD
+=======
+    if editor.image_profile.name != 'profile_default.png':
+        editor.image_profile.delete()
+>>>>>>> Rama-Publicaciones
     Registered_Data.objects.get(phone=editor.phone).delete()
     User.objects.get(username=editor.user.username).delete()
     editor.delete()
@@ -328,8 +557,18 @@ def delete_editor(request, editor_id):
 @login_required(login_url="login")
 def editor(request, editor_id):
     editor = Editor.objects.get(id=editor_id)
+    solicitud_inscripcion = Solicitud.objects.filter(tipo='Solicitud-Inscripción').filter(status='Pendiente').exists()
     if editor:
+<<<<<<< HEAD
         return render(request, "editores/edit.html", {"editor": editor})
+=======
+        if solicitud_inscripcion:
+            messages.error(request, 'No es posible editar un editor en este momento. '
+                                    'Atienda las solicitudes de inscripción que han sido enviadas y luego regrese.')
+            return HttpResponseRedirect('/backend')
+        else:
+            return render(request, "editores/edit.html", {"editor": editor})
+>>>>>>> Rama-Publicaciones
     else:
         return HttpResponseRedirect('/backend')
 
@@ -378,6 +617,16 @@ def musical_colections_list(request):
     return render(request, 'colecciones-musicales.html', data)
 
 
+# Function to generate a barcode
+def generate_barcode(ismn, titulo):
+    ruta = f'{MEDIA_ROOT}\\publications\\barcodes\\{titulo}_barcode'
+    number = ismn.replace('-', '')
+    bar_code = EAN13(number, writer=ImageWriter())
+    bytes_io = io.BytesIO()
+    bar_code.write(bytes_io)
+    return Path(ruta + '.png'), bytes_io
+
+
 # Function to add a musical publication
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @login_required(login_url="login")
@@ -399,6 +648,10 @@ def add_musical_publication(request):
             musical_publication.editor = editor
             musical_publication.prefijo = prefijo
             musical_publication.ismn = request.POST.get('ismn')
+<<<<<<< HEAD
+=======
+            barcode_rute, barcode_io = generate_barcode(musical_publication.ismn, musical_publication.name)
+>>>>>>> Rama-Publicaciones
             musical_publication.gender = request.POST.get('gender')
             musical_publication.letra = request.FILES.get('publication_letter')
             if request.FILES.get('publication_image'):
@@ -407,6 +660,7 @@ def add_musical_publication(request):
                 pass
             musical_publication.description = request.POST.get('note')
             musical_publication.date_time = request.POST.get('date')
+<<<<<<< HEAD
             musical_publication.save()
             messages.success(request, "Publicación musical añadida correctamente !")
             return HttpResponseRedirect('/backend_publicaciones')
@@ -414,6 +668,22 @@ def add_musical_publication(request):
         editores = Editor.objects.annotate(Count('musical_publication'))
         data = {'editores': editores}
         return render(request, "publicaciones/add_publication.html", data)
+=======
+            musical_publication.barcode.save(f'{barcode_rute.stem}{barcode_rute.suffix}',
+                                             File(barcode_io), save=True)
+            musical_publication.save()
+            messages.success(request, "Publicación musical añadida correctamente !")
+            return HttpResponseRedirect('/backend_publicaciones')
+    elif request.method == 'GET':
+        if Solicitud.objects.filter(status='Pendiente').exists():
+            messages.error(request, 'No es posible añadir una publicación en estos momentos. '
+                                    'Atienda las solicitudes ISMN que han sido enviadas y luego regrese.')
+            return HttpResponseRedirect('/backend_publicaciones')
+        else:
+            editores = Editor.objects.annotate(Count('musical_publication'))
+            data = {'editores': editores}
+            return render(request, "publicaciones/add_publication.html", data)
+>>>>>>> Rama-Publicaciones
 
 
 # Function to access the musical_publication individually
@@ -423,7 +693,15 @@ def musical_publication(request, musical_publication_id):
     musical_publication = Musical_Publication.objects.get(id=musical_publication_id)
     editores = Editor.objects.all()
     data = {"musical_publication": musical_publication, "editores": editores}
+<<<<<<< HEAD
     if musical_publication:
+=======
+    if Solicitud.objects.filter(status='Pendiente').filter(tipo='Solicitud-ISMN').exists():
+        messages.error(request, 'No es posible editar una publicación en estos momentos. '
+                                'Atienda las solicitudes ISMN que han sido enviadas y luego regrese.')
+        return HttpResponseRedirect('/backend_publicaciones')
+    else:
+>>>>>>> Rama-Publicaciones
         return render(request, "publicaciones/edit_publication.html", data)
 
 
@@ -466,6 +744,11 @@ def edit_musical_publication(request):
 @login_required(login_url="login")
 def delete_musical_publication(request, musical_publication_id):
     musical_publication = Musical_Publication.objects.get(id=musical_publication_id)
+    musical_publication.letra.delete()
+    musical_publication.barcode.delete()
+    if musical_publication.imagen.name != 'default.jpg':
+        musical_publication.imagen.delete()
+    musical_publication.prefijo.delete()
     musical_publication.delete()
     messages.success(request, "Publicacion Musical eliminada correctamente !")
     return HttpResponseRedirect('/backend_publicaciones')
@@ -475,11 +758,18 @@ def delete_musical_publication(request, musical_publication_id):
 @login_required(login_url="login")
 def delete_solicitud(request, solicitud_id):
     solicitud = Solicitud.objects.get(id=solicitud_id)
+<<<<<<< HEAD
+=======
+    if solicitud.temporal['publication_image']:
+        os.remove(f"{BASE_DIR}\{solicitud.temporal['publication_image']}")
+    os.remove(f"{BASE_DIR}\{solicitud.temporal['publication_letra']}")
+>>>>>>> Rama-Publicaciones
     solicitud.delete()
     messages.success(request, "Solicitud eliminada correctamente !")
     return HttpResponseRedirect('/backend_solicitudes')
 
 
+<<<<<<< HEAD
 # Function to send Confirmation Code
 def generate_confirmation_code():
     return randint(1000, 9999)
@@ -487,11 +777,131 @@ def generate_confirmation_code():
 
 def send_email(request):
     confirmation_code = generate_confirmation_code()
+=======
+# ---- GENERAR ISMN ------
+def generar_ismn(editor):
+    """ Notas
+        1- La cantidad de digitos que debe tener un ismn en total para Cuba son 13
+        2- La cantidad de digitos que deben sumar los prefijos de publicacion y editor son 8
+        3- El digito de control se calcula mediante este metodo http://www.grupoalquerque.es/mate_cerca/paneles_2012/168_ISBN2.pdf
+    """
+
+    # Funcion que formatea el prefijo_publicacion para que tenga el formato de ismn: 001,012,0002, etc
+    def formatear_prefijo(valor, cant_digitos_prefijo_companiero):
+        # Cantidad de digitos que debe tener la publicacion segun las reglas ISMN
+        cant_digitos = 8 - cant_digitos_prefijo_companiero
+
+        # Cantidad de ceros que debe agregar al prefijo de la publicacion
+        cant_zeros = cant_digitos - len(valor)
+
+        # Retorna el valor de la publicacion listo para insertar en el ISMN
+        return '0' * cant_zeros + valor
+
+    # Para determinar el valor del prefijo de la publicacion
+    def determinar_valor_prefijo_publicacion(musical_pub_exist, solicitud_ismn_exist):
+        valor_prefijo_ultima_publicacion = editor.musical_publication_set.last().prefijo.value if musical_pub_exist else 0
+        valor_prefijo_ultima_solicitud = int(
+            editor.solicitud_set.last().temporal.get('ismn').split('-')[-2]) if solicitud_ismn_exist else 0
+        valor_prefijo_publicacion = max(valor_prefijo_ultima_solicitud, valor_prefijo_ultima_publicacion)
+        return valor_prefijo_publicacion + 1
+
+    # Funcion para calcular el digito de control
+    def digito_control(editor_prefijo, publicacion_prefijo):
+        sum = 39  # Esta es la suma de lote '979-0' aplicando el metodo de 9*1 + 7*3 + 9*1 + 0*3 = 39.
+        multiplicador = [1, 3]  # Multiplicadores que se van alternando en cada digito de ambos prefijos
+        # (Editor, Publicacion) para crear el digito de control.
+        digit_control = int  # Puede tener valor minimo de 0 y maximo de 9.
+
+        for i in range(len(editor_prefijo)):
+            if i % 2 == 0:
+                sum += int(editor_prefijo[i]) * multiplicador[0]
+            else:
+                sum += int(editor_prefijo[i]) * multiplicador[1]
+
+        if len(editor_prefijo) % 2 != 0:
+            multiplicador = [3, 1]
+
+        for i in range(len(publicacion_prefijo)):
+            if i % 2 == 0:
+                sum += int(publicacion_prefijo[i]) * multiplicador[0]
+            else:
+                sum += int(publicacion_prefijo[i]) * multiplicador[1]
+
+        for i in range(10):
+            if (sum + i) % 10 == 0:
+                digit_control = i
+                break
+
+        return str(digit_control)
+
+    # Funcion que conforma el ISMN con sus diferentes partes
+    def crear_ismn(editor_prefijo, publicacion_prefijo):
+        digit_validation = digito_control(editor_prefijo, publicacion_prefijo)
+        return '979-0' + '-' + editor_prefijo + '-' + publicacion_prefijo + '-' + digit_validation
+
+    cant_digitos_prefijo_editor = str(editor.prefijo.rango.rango_superior).__len__()
+    valor_prefijo_public = determinar_valor_prefijo_publicacion(editor.musical_publication_set.exists(),
+                                                                editor.solicitud_set.filter(
+                                                                    tipo='Solicitud-ISMN').filter(
+                                                                    status='Pendiente').exists())
+    prefijo_publicacion = formatear_prefijo(str(valor_prefijo_public), cant_digitos_prefijo_editor)
+
+    #   En el excepcional caso que el prefijo del editor necesite un cero delante
+    if editor.prefijo.value < 10:
+        prefijo_editor = formatear_prefijo(str(editor.prefijo.value), len(prefijo_publicacion))
+    else:
+        prefijo_editor = str(editor.prefijo.value)
+
+    return crear_ismn(prefijo_editor, prefijo_publicacion)
+
+
+def almacenar_file_temporal(file):
+    ruta = f"{MEDIA_ROOT}\\temp\\{file}"
+    with open(ruta, "wb+") as destination:
+        for chunk in file.chunks():
+            destination.write(chunk)
+        destination.close()
+    return f'/media/temp/{file}'
+
+
+@login_required(login_url="login")
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def solicitud_ismn(request):
+    if request.POST:
+        solicitud = Solicitud()
+        solicitud.editor = Editor.objects.get(user__username=request.user)
+        solicitud.temporal = request.POST.copy()
+        solicitud.temporal['ismn'] = generar_ismn(solicitud.editor)
+        try:
+            imagen_file = request.FILES['publication_image']
+            solicitud.temporal['publication_image'] = almacenar_file_temporal(imagen_file)
+        except MultiValueDictKeyError:
+            solicitud.temporal['publication_image'] = ''
+        letra_file = request.FILES['publication_letter']
+        solicitud.temporal['publication_letra'] = almacenar_file_temporal(letra_file)
+        solicitud.tipo = "Solicitud-ISMN"
+        solicitud.status = "Pendiente"
+        solicitud.save()
+        messages.success(request, 'Su solicitud se ha enviado correctamente, pronto se '
+                                  'le enviará un reporte de su publicación junto al ISMN asignado.')
+        return HttpResponseRedirect('/')
+    else:
+        return render(request, 'solicitudes/solicitud-ISMN.html')
+
+
+def send_code_confirmation(request):
+    confirmation_code = randint(1000, 9999)
+    print(confirmation_code)
+>>>>>>> Rama-Publicaciones
     context = {
         'nombre': request.POST.get('first_name'),
         'code': confirmation_code
     }
+<<<<<<< HEAD
     message = loader.render_to_string('mail_confirmation_client.html', context)
+=======
+    message = loader.render_to_string('emails/mail_confirmation_client.html', context)
+>>>>>>> Rama-Publicaciones
     email = EmailMultiAlternatives(
         "Confirmación de Correo", message,
         "CCL de Cuba",
@@ -502,17 +912,74 @@ def send_email(request):
         email.send()
         return confirmation_code
     except TimeoutError or SMTPServerDisconnected:
+<<<<<<< HEAD
         messages.error('Error en la conexión. Intente más tarde.')
+=======
+        messages.error(request, 'Error en la conexión. Intente más tarde.')
+>>>>>>> Rama-Publicaciones
         return HttpResponseRedirect('/')
 
 
-def export_musical_publication(request, musical_publication_id):
-    # Tomar la Info. de la Publicación a exportar
-    publication = Musical_Publication.objects.get(id=musical_publication_id)
+def send_info_inscripcion(nombre, user_email, username, password):
+    context = {
+        'nombre': nombre,
+        'username': username,
+        'password': password
+    }
+    message = loader.render_to_string('emails/accept_inscription.html', context)
+    email = EmailMultiAlternatives(
+        "Solicitud de inscripción aceptada", message,
+        "CCL de Cuba",
+        [user_email],
+    )
+    email.content_subtype = 'html'
+    try:
+        email.send()
+        return True
+    except TimeoutError or SMTPServerDisconnected or SMTPAuthenticationError:
+        return False
 
-    # Crear el temporal para el pdf
-    buffer = io.BytesIO()
 
+def send_solicitud_ismn_accepted(user, publicacion):
+    context = {
+        'nombre': publicacion.editor.user.first_name,
+    }
+
+    message = loader.render_to_string('emails/accept_solicitud_ismn.html', context)
+
+    email = EmailMultiAlternatives(
+        "Solicitud ISMN aceptada", message,
+        "CCL de Cuba",
+        [publicacion.editor.user.email],
+    )
+    email.content_subtype = 'html'
+
+    # Generar el reporte y saber su ruta
+    ruta = save_temporal_doc_documentation(user, publicacion)
+
+    # Leer el archivo PDF en modo binario
+    with open(ruta, "rb") as archivo_pdf:
+        contenido_pdf = archivo_pdf.read()
+
+    # Crear un objeto MIMEBase
+    archivo_adjunto = MIMEBase('application', 'octet-stream')
+    archivo_adjunto.set_payload(contenido_pdf)
+
+    # Codificar el archivo adjunto en base64
+    encoders.encode_base64(archivo_adjunto)
+
+    # Establecer las cabeceras del archivo adjunto
+    archivo_adjunto.add_header('Content-Disposition', f'attachment; filename="{ruta.name}"')
+
+    email.attach(archivo_adjunto)
+    try:
+        email.send()
+        return True
+    except TimeoutError or SMTPServerDisconnected or SMTPAuthenticationError:
+        return False
+
+
+def crear_doc_publicacion(user, publication):
     # Importar las fuentes externas
     pdfmetrics.registerFont(TTFont('RobotoCondensed-Bold', 'fonts/RobotoCondensed-Bold.ttf'))
     pdfmetrics.registerFont(TTFont('RobotoSlab', 'fonts/RobotoSlab-VariableFont_wght.ttf'))
@@ -524,6 +991,15 @@ def export_musical_publication(request, musical_publication_id):
     style_description = ParagraphStyle(name='description_style', rightIndent=15, leading=15, fontName="Roboto")
     letra = Paragraph(f'<u><a href="http://127.0.0.1:8000/{publication.letra.url}" '
                       f'color="blue">http://127.0.0.1:8000/{publication.letra.url}</a></u>', style_letra)
+
+    if publication.imagen.name == 'default.jpg':
+        cover_title = publication.imagen.name
+    else:
+        cover_title = publication.imagen.name[13:]
+
+    cover = Paragraph(f'<u><a href="http://127.0.0.1:8000/{publication.imagen.url}" '
+                      f'color="blue">{cover_title}</a></u>', style_letra)
+
     if publication.description:
         descripcion = Paragraph(f'<font name="RobotoCondensed-Bold" '
                                 f'color={colors.Color(0.21, 0.25, 0.33)}>DESCRIPCIÓN</font>'
@@ -542,9 +1018,10 @@ def export_musical_publication(request, musical_publication_id):
             ['EDITOR', publication.editor],
             ['LETRA DE LA CANCIÓN', letra, ''],
             ['ISMN', publication.ismn, descripcion],
-            ['PREFIJO', publication.prefijo, ''],
+            ['COVER', cover, ''],
             ['FECHA DE PUBLICACIÓN', publication.created_at.date(), ''],
-            ['FECHA DE REALIZACIÓN', publication.date_time, ''],
+            ['FECHA DE REALIZACIÓN',
+             f'{publication.date_time.year}-{publication.date_time.month}-{publication.date_time.day}', ''],
             ['DERECHOS DE AUTOR', 'EN VENTA', '']
             ]
 
@@ -593,9 +1070,7 @@ def export_musical_publication(request, musical_publication_id):
                                           ('FONT', (0, 0), (0, -1), 'RobotoCondensed-Bold'),
                                           ('FONT', (1, 0), (1, -1), 'Roboto'),
                                           ('TEXTCOLOR', (0, 0), (-1, -1), colors.Color(0.21, 0.25, 0.33)),
-                                          ('LINEBEFORE', (1, 0), (1, -1), 0, colors.Color(1, 0, 0, alpha=0)),
-                                          # ('BOX', (0, 0), (-1, -1), 1, colors.Color(0.49, 0.30, 0.34)),
-                                          # ('LINEABOVE', (0, 0), (-1, -1), 1, colors.Color(0.49, 0.30, 0.34))
+                                          ('LINEBEFORE', (1, 0), (1, -1), 0, colors.Color(1, 0, 0, alpha=0))
                                           ])
         table_autoria.setStyle(table_autoria_style)
         table_autoria.wrapOn(canvas, 50, 475)
@@ -666,55 +1141,18 @@ def export_musical_publication(request, musical_publication_id):
         options.textLine('no')
         canvas.drawText(options)
 
-        # Cover de la publicacion
-        def redondear_imagen(imagen, radio):
-            # Crear una máscara redonda del mismo tamaño que la imagen
-            mascara = PILImage.new("L", imagen.size, 0)
-            dibujo = ImageDraw.Draw(mascara)
-            dibujo.ellipse((0, 0, imagen.width, imagen.height), fill=255)
-
-            # Crear una nueva imagen con fondo transparente
-            imagen_redonda = PILImage.new("RGBA", imagen.size, (0, 0, 0, 0))
-
-            # Pegar la imagen original en la nueva imagen usando la máscara
-            imagen_redonda.paste(imagen, mask=mascara)
-
-            # Crear una nueva máscara redonda con un borde transparente
-            borde = PILImage.new("L", imagen.size, 0)
-            dibujo_borde = ImageDraw.Draw(borde)
-            dibujo_borde.ellipse(
-                (radio, radio, imagen.width - radio, imagen.height - radio), fill=255
-            )
-
-            # Pegar la imagen redonda en una nueva imagen con el borde
-            imagen_final = PILImage.new("RGBA", imagen.size, (0, 0, 0, 0))
-            imagen_final.paste(imagen_redonda, mask=borde)
-
-            return imagen_final
-
-        # Abrir la imagen original
-        imagen_original = PILImage.open(publication.imagen.path)
-
-        # Radio del borde redondeado
-        radio_borde = 5
-
-        # Redondear la imagen
-        imagen_redondeada = redondear_imagen(imagen_original, radio_borde)
-
-        # Guardar la imagen redondeada
-        imagen_redondeada.save(f"App/static/img/imagen_redondeada.png")
-
-        cover = Image("App/static/img/imagen_redondeada.png", width=150, height=120)
-        w, h = cover.wrapOn(canvas, 350, 120)
-        cover.drawOn(canvas, 350, y_coord_table_description - h - 20)
+        # Imagen del codigo de barras al final del reporte
+        barcode = Image(publication.barcode.path, width=150, height=120)
+        w, h = barcode.wrapOn(canvas, 350, 120)
+        barcode.drawOn(canvas, 360, y_coord_table_description - h - 20)
 
         # Text url from cover
         cover_style = ParagraphStyle(name='style', fontName="Roboto")
-        cover_url = Paragraph(f'<u><a href="http://127.0.0.1:8000/{publication.imagen.url}" '
+        cover_url = Paragraph(f'<u><a href="http://127.0.0.1:8000/{publication.barcode.url}" '
                               f'color="blue">Mostrar Imagen</a></u>', cover_style)
         w = canvas.stringWidth('Mostrar Imagen', 'Roboto', 10)
         cover_url.wrapOn(canvas, 88, 12)
-        cover_url.drawOn(canvas, 424 - w / 2, 110)
+        cover_url.drawOn(canvas, 432 - w / 2, y_coord_table_description - h - 40)
 
         # Texto Informativo
         text_info_style = ParagraphStyle(name='text_info_style')
@@ -732,13 +1170,13 @@ def export_musical_publication(request, musical_publication_id):
 
         # Tabla de Reportado por:
         # Datos
-        if request.user.especialista:
+        if user.especialista:
             departamento = 'Informatica - CCL'
         else:
             departamento = '-'
         data_table_report_by = [
             ['REPORTADO POR:', ''],
-            ['Nombre:', request.user.first_name],
+            ['Nombre:', user.first_name],
             ['Fecha:', datetime.today().date()],
             ['Departamento:', departamento]
         ]
@@ -763,11 +1201,240 @@ def export_musical_publication(request, musical_publication_id):
         canvas.rect(0, 0, 600, 10, stroke=0, fill=1)
         canvas.restoreState()
 
-    story = [Paragraph('')]
+    return myPage
+
+
+def export_musical_publication(request, musical_publication_id):
+    # Tomar la Info. de la Publicación a exportar
+    publication = Musical_Publication.objects.get(id=musical_publication_id)
+
+    # Crear el temporal para el pdf
+    buffer = io.BytesIO()
+    # Contenido del reporte
+    mypage = crear_doc_publicacion(request.user, publication)
+
+    story = [Spacer(1, 2 * inch)]
     doc = SimpleDocTemplate(buffer)
-    doc.build(story, onFirstPage=myPage)
+    doc.build(story, onFirstPage=mypage)
     buffer.seek(0)
     return FileResponse(buffer, as_attachment=True, filename=f"{publication.name}.pdf")
+
+
+def extraer_datos_model(modelo_list):
+    # Saber con que tipo de modelo estamos trabajando:
+    modelo_type = modelo_list.model._meta.model_name
+    contenido = dict()
+
+    if modelo_type == 'musical_publication':
+        contenido['ID'] = [publicacion.id for publicacion in modelo_list]
+        contenido['Título'] = [publicacion.name for publicacion in modelo_list]
+        contenido['Autor'] = [publicacion.autor for publicacion in modelo_list]
+        contenido['Editor'] = [publicacion.editor.user.first_name for publicacion in modelo_list]
+        contenido['ISMN'] = [publicacion.ismn for publicacion in modelo_list]
+        contenido['Fecha'] = [publicacion.date_time for publicacion in modelo_list]
+        contenido['Género'] = [publicacion.gender for publicacion in modelo_list]
+    elif modelo_type == 'editor':
+        contenido['ID'] = [editor.id for editor in modelo_list]
+        contenido['Tipo'] = [editor.type for editor in modelo_list]
+        contenido['Nombre'] = [editor.user.first_name for editor in modelo_list]
+        contenido['ID Tributaria'] = [editor.id_tribute for editor in modelo_list]
+        contenido['Prefijo'] = [editor.prefijo for editor in modelo_list]
+        contenido['Estado'] = [editor.get_state_display() for editor in modelo_list]
+        contenido['Dirección'] = [editor.directions for editor in modelo_list]
+        contenido['Teléfono'] = [editor.phone for editor in modelo_list]
+    elif modelo_type == 'solicitud':
+        contenido['ID'] = [solicitud.id for solicitud in modelo_list]
+        contenido['Editor'] = [solicitud.editor.user.first_name if solicitud.editor else '-' for solicitud in
+                               modelo_list]
+        contenido['Solicitante'] = [solicitud.temporal['first_name'] if solicitud.tipo == 'Solicitud-Inscripción'
+                                                                        and solicitud.status == 'Pendiente' else '-'
+                                    for solicitud in modelo_list]
+        contenido['Fecha'] = [solicitud.created_at.strftime('%Y-%m-%d') for solicitud in modelo_list]
+        contenido['Tipo'] = [solicitud.tipo for solicitud in modelo_list]
+        contenido['Estado'] = [solicitud.status for solicitud in modelo_list]
+    else:
+        pass
+    return contenido
+
+
+def crear_report_list(model_list, buffer):
+    #  --- Datos del modelo que queremos reportar ---
+    # Datos de la Tabla
+    diccionario = extraer_datos_model(model_list)
+    # Tipo de Modelo (Editor, Publicacion, Solicitud)
+    tipo = model_list.model.__name__
+    # Titulo de la primera pagina, tipo de modelo a reportar
+    title = str()
+    # Ancho de las columnas de la tabla
+    col_widths = list()
+    if tipo == "Musical_Publication":
+        title = 'Publicaciones Musicales'
+        col_widths = [30, 120, 120, 110, 110, 110]
+    elif tipo == 'Editor':
+        title = 'Editores'
+        col_widths = [30, 90, 120, 90, 60, 50, 160, 90]
+    else:
+        title = 'Solicitudes'
+        col_widths = [30, 130, 130, 100, 115, 110]
+
+    # Importar las fuentes externas
+    pdfmetrics.registerFont(TTFont('RobotoCondensed-Bold', 'fonts/RobotoCondensed-Bold.ttf'))
+    pdfmetrics.registerFont(TTFont('RobotoSlab', 'fonts/RobotoSlab-VariableFont_wght.ttf'))
+    pdfmetrics.registerFont(TTFont('Roboto-Italic', 'fonts/RobotoCondensed-Italic.ttf'))
+    pdfmetrics.registerFont(TTFont('Roboto', 'fonts/RobotoCondensed-Regular.ttf'))
+
+    PAGE_HEIGHT, PAGE_WIDTH = A4
+    style_letra = ParagraphStyle(name='letra_style', rightIndent=25, fontName="Roboto")
+
+    def myFirstPage(canvas, doc):
+        canvas.saveState()
+        # Color de Fondo
+        canvas.setFillColorRGB(0.94, 0.94, 0.94)
+        canvas.rect(0, 0, PAGE_WIDTH, PAGE_HEIGHT, fill=1)
+        # Barra de encabezado
+        canvas.setFillColorRGB(0.21, 0.25, 0.33)
+        canvas.rect(0, PAGE_HEIGHT - 31, PAGE_WIDTH, PAGE_HEIGHT, stroke=0, fill=1)
+        # Imprimir el Logo de la empresa
+        img_h = 110
+        img_w = 80
+        canvas.drawImage('media/logo.jpg', (PAGE_WIDTH - img_w) / 2, PAGE_HEIGHT - 155, img_w, img_h)
+        # Crear encabezado del reporte
+        publication_info_textobject = canvas.beginText()
+        texto_encabezado = 'LISTADO DE BASE DE DATOS'
+        width_texto_encabezado = canvas.stringWidth(texto_encabezado, 'RobotoCondensed-Bold', 15)
+        origin_start = (PAGE_WIDTH - width_texto_encabezado) / 2
+        publication_info_textobject.setTextOrigin(origin_start, PAGE_HEIGHT - 175)
+        publication_info_textobject.setFont('RobotoCondensed-Bold', 15)
+        publication_info_textobject.setFillColorRGB(0.21, 0.25, 0.33)
+        publication_info_textobject.setCharSpace(0.4)
+        publication_info_textobject.textLine(texto_encabezado)
+        # Titulo del listado
+        width_title_publicaction = canvas.stringWidth(title, 'RobotoSlab', 30)
+        origin_start = (PAGE_WIDTH - width_title_publicaction) / 2
+        publication_info_textobject.setTextOrigin(origin_start, PAGE_HEIGHT - 215)
+        publication_info_textobject.setFont('RobotoSlab', 30)
+        publication_info_textobject.setFillColorRGB(0.49, 0.30, 0.34)
+        publication_info_textobject.textLine(title)
+        canvas.drawText(publication_info_textobject)
+        # Raya separadora inicial
+        w_rect = 740
+        h_rect = 4
+        canvas.setFillColorRGB(0.49, 0.30, 0.34)
+        canvas.rect(PAGE_WIDTH - 790, PAGE_HEIGHT - 241, w_rect, h_rect, stroke=0, fill=1)
+        # Raya separadora final
+        canvas.setFillColorRGB(0.49, 0.30, 0.34)
+        canvas.rect(PAGE_WIDTH - 790, PAGE_HEIGHT - 550, w_rect, h_rect, stroke=0, fill=1)
+        canvas.restoreState()
+
+    def myLaterPage(canvas, doc):
+        canvas.saveState()
+        # Color de Fondo
+        canvas.setFillColorRGB(0.94, 0.94, 0.94)
+        canvas.rect(0, 0, PAGE_WIDTH, PAGE_HEIGHT, fill=1)
+        # Barra de encabezado
+        canvas.setFillColorRGB(0.21, 0.25, 0.33)
+        canvas.rect(0, PAGE_HEIGHT - 31, PAGE_WIDTH, PAGE_HEIGHT, stroke=0, fill=1)
+
+        # Imprimir el Logo de la empresa transparente
+        img_h = 440
+        img_w = 320
+        canvas.drawImage('media/logo_transparent.png', (PAGE_WIDTH - img_w) / 2, (PAGE_HEIGHT - img_h) / 2, img_w,
+                         img_h, mask='auto')
+        # Raya separadora inicial
+        w_rect = 740
+        h_rect = 4
+        canvas.setFillColorRGB(0.49, 0.30, 0.34)
+        canvas.rect(PAGE_WIDTH - 790, PAGE_HEIGHT - 65, w_rect, h_rect, stroke=0, fill=1)
+        # Numeracion de Paginas
+        page_number = canvas.beginText()
+        page_number.setTextOrigin(inch, 0.90 * inch)
+        page_number.setFont('RobotoSlab', 10)
+        page_number.setFillColorRGB(0.49, 0.30, 0.34)
+        page_number.textLine("Página %s" % doc.page)
+        canvas.drawText(page_number)
+        # Raya separadora final
+        canvas.setFillColorRGB(0.49, 0.30, 0.34)
+        canvas.rect(PAGE_WIDTH - 790, PAGE_HEIGHT - 550, w_rect, h_rect, stroke=0, fill=1)
+        canvas.restoreState()
+
+    def build_doc(pbuffer):
+        # Datos para conformar el documento
+        doc = SimpleDocTemplate(pbuffer, pagesize=landscape(A4))
+
+        story = [Spacer(PAGE_WIDTH - 545, PAGE_HEIGHT - 400)]
+        style_table = TableStyle([('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                                  ('FONT', (0, 0), (-1, 0), 'RobotoCondensed-Bold'),
+                                  ('FONT', (0, 1), (-1, -1), 'Roboto'),
+                                  ('TEXTCOLOR', (0, 0), (-1, -1), colors.Color(0.21, 0.25, 0.33)),
+                                  ('GRID', (0, 0), (-1, -1), 1, colors.Color(0.49, 0.30, 0.34))
+                                  ])
+
+        # Conformar los datos para la tabla de ReportLab
+        # Obtener todas las llaves
+        llaves = list(diccionario.keys())
+        # Crear la lista resultante
+        datas = [llaves]
+        # Obtener el número de elementos del modelo
+        num_elementos = len(list(diccionario.values())[0])
+        # Iterar sobre los elementos
+        for i in range(num_elementos):
+            fila = []
+            for llave in llaves:
+                valor = diccionario[llave][i]
+                fila.append(valor)
+            datas.append(fila)
+        # TABLE
+        table = Table(datas, colWidths=col_widths)
+        table.setStyle(style_table)
+        story.append(table)
+        doc.build(story, onFirstPage=myFirstPage, onLaterPages=myLaterPage)
+
+    build_doc(buffer)
+
+
+def export_publications_list(request):
+    # Crear el temporal para el pdf
+    buffer = io.BytesIO()
+
+    list_publications = Musical_Publication.objects.all().order_by('-id')
+
+    crear_report_list(list_publications, buffer)
+
+    buffer.seek(0)
+    return FileResponse(buffer, as_attachment=True, filename=f"Publicaciones_lista.pdf")
+
+
+def export_editores_list(request):
+    # Crear el temporal para el pdf
+    buffer = io.BytesIO()
+
+    list_editores = Editor.objects.all().order_by('-id')
+
+    crear_report_list(list_editores, buffer)
+
+    buffer.seek(0)
+    return FileResponse(buffer, as_attachment=True, filename=f"Editores_lista.pdf")
+
+
+def export_solicitudes_list(request):
+    # Crear el temporal para el pdf
+    buffer = io.BytesIO()
+
+    list_solicitudes = Solicitud.objects.all().order_by('-id')
+
+    crear_report_list(list_solicitudes, buffer)
+
+    buffer.seek(0)
+    return FileResponse(buffer, as_attachment=True, filename=f"Solicitudes_lista.pdf")
+
+
+def save_temporal_doc_documentation(user, publication):
+    ruta = Path(f"{MEDIA_ROOT}/temp/{publication.name}.pdf")
+    doc = SimpleDocTemplate(ruta.__str__())
+    story = [Spacer(1, 2 * inch)]
+    mypage = crear_doc_publicacion(user, publication)
+    doc.build(story, onFirstPage=mypage)
+    return ruta
 
 
 def crear_listas():
@@ -823,6 +1490,7 @@ def export_catalogo_peliculas(request, musical_publication_id):
 
     def myLaterPage(canvas, doc):
         canvas.saveState()
+
         canvas.drawString(inch, 0.75 * inch, "Page %s" % (doc.page - 1))
         canvas.restoreState()
 

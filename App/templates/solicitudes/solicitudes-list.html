@@ -4,10 +4,20 @@
 
 <!-- Navbar content -->
 {% block navbar-content %}
+<<<<<<< HEAD
     <i class="fas fa-external-link-alt"></i>&nbsp;&nbsp;Solicitudes de Inscripción
 {% endblock navbar-content %}
 
 {% block btn-add %}{% endblock %}
+=======
+    <i class="fas fa-envelope-open-text"></i>&nbsp;&nbsp;Solicitudes
+{% endblock navbar-content %}
+
+
+{% block btn-add %}
+    <a href="{% url 'export_solicitudes_list' %}"  class="btn btn-outline-primary btn-sm "><i class="fas fa-file-export "></i>&nbsp;&nbsp;Exportar Tabla</a>
+{% endblock btn-add %}
+>>>>>>> Rama-Publicaciones
 
 {% block Offcanvas %}
     <a class="btn btn-dark" href="{% url 'backend_publicaciones' %}"><i class="fas fa-list"></i>&nbsp;&nbsp;Publicaciones</a>
@@ -40,6 +50,7 @@
             {% if solicitud.status == 'Pendiente' %}
                 <td style="color: red"><b>{{ solicitud.status }}</b></td>
             {% else %}
+<<<<<<< HEAD
                 <td>{{ solicitud.status }}</td>
             {% endif %}
 
@@ -48,6 +59,21 @@
                     <i class="fas fa-info-circle"></i>
                 </a>
             </td>
+=======
+                <td style="color: darkgreen"><b>{{ solicitud.status }}</b></td>
+            {% endif %}
+            {% if solicitud.status == 'Pendiente' %}
+                <td>
+                    <a class="btn btn-sm btn-info" title="Más Información" data-bs-toggle="modal" data-bs-target="#infoModal{{ solicitud.id }}">
+                        <i class="fas fa-info-circle"></i>
+                    </a>
+                </td>
+            {% elif solicitud.status == 'Atendido' %}
+                <td>
+                    <button type="button" class="btn btn-sm btn-success" title="Hecho"><i class="fas fa-check"></i></button>
+                </td>
+            {% endif %}
+>>>>>>> Rama-Publicaciones
             <td>
                 <a class="btn btn-sm btn-secondary" title="Eliminar Publicacion" data-bs-toggle="modal" data-bs-target="#deleteModal{{ solicitud.pk }}">
                     <i class="fas fa-trash"></i>
@@ -66,7 +92,15 @@
                 <div class="text-center text-danger"><i class="fas fa-times-circle fa-5x mb-4 mt-2"></i></div>
                   <div class="text-center text-danger">
                       <span>ESTÁS SEGURO QUE DESEAS ELIMINAR ESTA SOLICITUD ???</span>
+<<<<<<< HEAD
                       <div class="text-dark mt-3 mb-2 "><b>{{ solicitud.tipo }}: {{ solicitud.temporal.username }} </b></div>
+=======
+                      {% if solicitud.tipo == 'Solicitud-ISMN' %}
+                         <div class="text-dark mt-3 mb-2 "><b>{{ solicitud.tipo }}: {{ solicitud.temporal.title|default:solicitud.editor }} </b></div>
+                      {% else %}
+                          <div class="text-dark mt-3 mb-2 "><b>{{ solicitud.tipo }}: {{ solicitud.temporal.first_name|default:solicitud.editor }} </b></div>
+                      {% endif %}
+>>>>>>> Rama-Publicaciones
                   </div>
               </div>
               <div class="modal-footer">
@@ -152,15 +186,38 @@
                             </div>
                           </div>
                       </div>
+<<<<<<< HEAD
                   {% else %}
                       <h4 class="display-6 mb-3">{{ solicitud }}</h4>
                       <div class="container_img mb-4" style="background-color: transparent;">
                           <img class="card-img img_detail" src="{{ solicitud.temporal.imagen.url }}" alt="imagen musical">
+=======
+
+                      <div class="modal-footer justify-content-center">
+                        <button type="button" style="border: transparent; background-color: transparent" data-bs-dismiss="modal" id="btn-accept">
+                            <a href="{% url 'accept_inscription' solicitud.id %}" type="button" class="btn btn-outline-dark"><i class="fas fa-file-export "></i>&nbsp;&nbsp;Aceptar</a>
+                        </button>
+                      </div>
+                  {% elif solicitud.tipo == 'Solicitud-ISMN' %}
+                      <h4 class="display-6 mb-3">{{ solicitud.temporal.tipo }}</h4>
+                      <div class="container_img mb-4" style="background-color: transparent;">
+                          <img class="card-img img_detail" src="{{ solicitud.temporal.publication_image|default:'/media/default.jpg' }}" alt="imagen musical">
+>>>>>>> Rama-Publicaciones
                       </div>
                       <div class="container-fluid" style="font-size: large; text-align: left">
                           <div class="row mb-1">
                             <div class="col-12">
+<<<<<<< HEAD
                                 <strong>Título:</strong> &nbsp;&nbsp;{{ solicitud.temporal.name }}
+=======
+                                <strong>Título:</strong> &nbsp;&nbsp;{{ solicitud.temporal.title }}
+                            </div>
+                          </div>
+                          <hr>
+                          <div class="row mb-1">
+                            <div class="col-12">
+                                <strong>Fecha de creación:</strong> &nbsp;&nbsp;{{ solicitud.temporal.date }}
+>>>>>>> Rama-Publicaciones
                             </div>
                           </div>
                           <hr>
@@ -172,7 +229,11 @@
                           <hr>
                           <div class="row mb-1">
                             <div class="col-12">
+<<<<<<< HEAD
                                 <strong>Editor:</strong> &nbsp;&nbsp;{{ solicitud.temporal.editor }}
+=======
+                                <strong>Editor:</strong> &nbsp;&nbsp;{{ solicitud.editor.user.first_name }}
+>>>>>>> Rama-Publicaciones
                             </div>
                           </div>
                           <hr>
@@ -190,18 +251,27 @@
                           <hr>
                           <div class="row mb-1">
                             <div class="col-12">
+<<<<<<< HEAD
                                 <strong>Letra:</strong> &nbsp;&nbsp;<a href="/media/{{ solicitud.temporal.letra }}">{{ solicitud.temporal.letra_base_name }}</a>
+=======
+                                <strong>Letra:</strong> &nbsp;&nbsp;<a href="{{ solicitud.temporal.publication_letra }}">{{ solicitud.temporal.publication_letra }}</a>
+>>>>>>> Rama-Publicaciones
                             </div>
                           </div>
                           <hr>
                           <div class="row mb-1">
                             <div class="col-12">
+<<<<<<< HEAD
                                 <strong>Descripción:</strong> &nbsp;&nbsp;{{ solicitud.temporal.description }}
+=======
+                                <strong>Descripción:</strong> &nbsp;&nbsp;{{ solicitud.temporal.note }}
+>>>>>>> Rama-Publicaciones
                             </div>
                           </div>
                           <hr>
                           <div class="row mb-1">
                             <div class="col-12">
+<<<<<<< HEAD
                                 <strong>Fecha de creación:</strong> &nbsp;&nbsp;{{ solicitud.temporal.date_time }}
                             </div>
                           </div>
@@ -219,8 +289,62 @@
                     <a href="#" type="button" class="btn btn-outline-dark"><i class="fas fa-file-export "></i>&nbsp;&nbsp;Aceptar</a>
                 </button>
               </div>
+=======
+                                <strong>Fecha de solicitud:</strong> &nbsp;&nbsp;{{ solicitud.created_at }}
+                            </div>
+                          </div>
+                      </div>
+                      <div class="modal-footer justify-content-center">
+                        <button type="button" style="border: transparent; background-color: transparent" data-bs-dismiss="modal" id="btn-accept">
+                            <a href="{% url 'accept_ismn_application' solicitud.id %}" type="button"
+                               class="btn btn-outline-dark"><i class="fas fa-file-export "></i>&nbsp;&nbsp;Aceptar</a>
+                        </button>
+                      </div>
+                  {% else %}
+                      <div class="row mb-1">
+                        <div class="col-12">
+                            <p class="display-2">Solicitud Atendida</p>
+                        </div>
+                      </div>
+                  {% endif %}
+              </div>
+>>>>>>> Rama-Publicaciones
             </div>
           </div>
         </div>
     {% endfor %}
+<<<<<<< HEAD
 {% endblock for-data-table %}
+=======
+{% endblock for-data-table %}
+
+{% block pagination %}
+    <nav class="mt-4" aria-label="Page navigation example">
+        {% if solicitudes.has_other_pages %}
+            <ul class="pagination justify-content-left">
+            {% if solicitudes.has_previous %}
+                <a href="?page=1" class="btn btn-outline-primary mb-4" style="width: auto; border-radius: 1px; border: 1px solid #d3d3d3">Primera</a>
+                <li class="page-item"><a class="page-link" href="?page={{ solicitudes.previous_page_number }}"><i class="fas fa-angle-double-left"></i></a></li>
+            {% else %}
+                <li class="page-item disabled"></li>
+            {% endif %}
+
+            {% for i in solicitudes.paginator.page_range %}
+                {% if solicitudes.number == i %}
+                    <li class="page-item active"><span class="page-link">{{ i }}<span class="sr-only"></span></span></li>
+                {% else %}
+                    <li class="page-item"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
+                {% endif %}
+            {% endfor %}
+
+            {% if solicitudes.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ solicitudes.next_page_number }}"><i class="fas fa-angle-double-right"></i></a></li>
+                <a href="?page={{ solicitudes.paginator.num_pages }}" class="btn btn-outline-primary mb-4" style="width: auto; border-radius: 1px; border: 1px solid #d3d3d3; border-left: none;">Última</a>
+            {% else %}
+                <li class="page-item disabled"></li>
+            {% endif %}
+            </ul>
+        {% endif %}
+    </nav>
+{% endblock pagination %}
+>>>>>>> Rama-Publicaciones

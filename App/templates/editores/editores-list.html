@@ -19,12 +19,21 @@
         <a class="text-light" id="btn-notif" href="#">
             <i class="fas fa-envelope"></i><span class="total">7</span>
         </a>
-        <a class="text-light" id="btn-notif" href="#">
-            <i class="fas fa-bell"></i><span class="pending">5</span>
-        </a>
+        {% if solicitudes_pendientes.count > 9 %}
+            <a class="text-light" id="btn-notif" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#pendingModal">
+                <i class="fas fa-bell"></i><span class="plus_nine">9+</span>
+            </a>
+        {% elif solicitudes_pendientes.count == 0 %}
+            <div class="text-light" id="btn-notif">
+                <i class="fas fa-bell"></i>
+            </div>
+        {% else %}
+            <a class="text-light" id="btn-notif" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#pendingModal">
+                <i class="fas fa-bell"></i><span class="pending" >{{ solicitudes_pendientes.count }}</span>
+            </a>
+        {% endif %}
     </div>
 {% endblock notifications %}
-
 
 <!-- CONTENT PAGE -->
 {% block content %}
@@ -34,14 +43,21 @@
 
             <br><br>
 
-            <div class="d-flex justify-content-between">
+            <!--Sub-Header-->
+            <div class="d-flex gap-2">
                 <!-- 1) Column ADD Editor and Musical Publication -->
                 {% block btn-add %}
                     <a href="{% url 'add_editor' %}" class="btn btn-outline-primary btn-sm"><i class="fas fa-plus"></i>&nbsp;&nbsp; Añadir Editor</a>
+                    <a href="{% url 'export_editores_list' %}"  class="btn btn-outline-primary btn-sm "><i class="fas fa-file-export "></i>&nbsp;&nbsp;Exportar Tabla</a>
                 {% endblock %}
                 <!-- 2) Column Get users -->
+<<<<<<< HEAD
                 <span>
                     Bienvenido <strong><span class="text-primary">{{ user.get_username|capfirst }}</span></strong>
+=======
+                <span class="d-inline-block float-end ms-auto me-1">
+                    Bienvenid@ <strong><span class="text-primary">{{ user.get_username|capfirst }}</span></strong>
+>>>>>>> Rama-Publicaciones
                 </span>
             </div>
 
@@ -130,17 +146,65 @@
                                 </div>
                               </div>
                             </div>
+
+
                         {% endfor %}
                     {% endblock for-data-table %}
                 </table>
+
+                <!-- Modal to Pending Application -->
+                <div class="modal fade modal-lg" id="pendingModal" tabindex="-1" aria-labelledby="pendingModalLabel" aria-hidden="true">
+                  <div class="modal-dialog">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                          <h1 class="modal-title fs-5" id="pendingModalLabel"><i class="fas fa-bell text-danger"></i>&nbsp;&nbsp; Pendientes</h1>
+                          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                      </div>
+                      <div class="modal-body">
+                        <table class="table">
+                          <thead>
+                            <tr>
+                              <th scope="col">#</th>
+                              <th scope="col">Editor</th>
+                              <th scope="col">Fecha</th>
+                              <th scope="col">Tipo</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {% for solicitud in solicitudes_pendientes %}
+                                {% if solicitud.tipo == 'Solicitud-Inscripción' %}
+                                    <tr class="table-danger">
+                                      <th scope="row">{{ solicitud.id }}</th>
+                                      <td>{{ solicitud.editor|default:"-" }}</td>
+                                      <td>{{ solicitud.created_at}}</td>
+                                      <td>{{ solicitud.tipo }}</td>
+                                    </tr>
+                                {% else %}
+                                    <tr class="table-primary">
+                                      <th scope="row">{{ solicitud.id }}</th>
+                                      <td>{{ solicitud.editor|default:"-" }}</td>
+                                      <td>{{ solicitud.created_at}}</td>
+                                      <td>{{ solicitud.tipo }}</td>
+                                    </tr>
+                                {% endif %}
+                            {% endfor %}
+                          </tbody>
+                        </table>
+                        <hr>
+                        <footer>TOTAL = {{ solicitudes_pendientes.count }}</footer>
+                      </div>
+                    </div>
+                  </div>
+                    </div>
             </div>
 
             <!-- PAGINATION -->
+        {% block pagination %}
             <nav class="mt-4" aria-label="Page navigation example">
                 {% if editores.has_other_pages %}
                     <ul class="pagination justify-content-left">
                     {% if editores.has_previous %}
-                        <a href="?page=1" class="btn btn-outline-primary mb-4" style="width: 60px; border-radius: 1px; border: 1px solid #d3d3d3">First</a>
+                        <a href="?page=1" class="btn btn-outline-primary mb-4" style="width: auto; border-radius: 1px; border: 1px solid #d3d3d3">Primera</a>
                         <li class="page-item"><a class="page-link" href="?page={{ editores.previous_page_number }}"><i class="fas fa-angle-double-left"></i></a></li>
                     {% else %}
                         <li class="page-item disabled"></li>
@@ -156,14 +220,14 @@
 
                     {% if editores.has_next %}
                         <li class="page-item"><a class="page-link" href="?page={{ editores.next_page_number }}"><i class="fas fa-angle-double-right"></i></a></li>
-                        <a href="?page={{ editores.paginator.num_pages }}" class="btn btn-outline-primary mb-4" style="width: 60px; border-radius: 1px; border: 1px solid #d3d3d3; border-left: none;">Last</a>
+                        <a href="?page={{ editores.paginator.num_pages }}" class="btn btn-outline-primary mb-4" style="width: auto; border-radius: 1px; border: 1px solid #d3d3d3; border-left: none;">Última</a>
                     {% else %}
                         <li class="page-item disabled"></li>
                     {% endif %}
                     </ul>
                 {% endif %}
             </nav>
-
+        {% endblock pagination %}
             <!-- Messages from backend -->
             {% for message in messages %}
                 {% if message.tags == 'success' %}
@@ -178,15 +242,19 @@
             <!-- If there is no editors, show the message -->
             <span class="text-danger" id="no-data"></span>
         </div> <!-- END // container -->
-
     {% else %}
         <span class="text-danger">Access Deneid!</span>
     {% endif %}
 {% endblock content %}
 
 {% block Offcanvas %}
+<<<<<<< HEAD
     <a class="btn btn-dark" href="{% url 'backend_solicitudes' %}"><i class="fas fa-database"></i>&nbsp;&nbsp;Solicitudes</a>
     <a class="btn btn-dark" href="{% url 'backend_publicaciones' %}"><i class="fas fa-database"></i>&nbsp;&nbsp;Publicaciones
+=======
+    <a class="btn btn-dark" href="{% url 'backend_solicitudes' %}"><i class="fas fa-list"></i>&nbsp;&nbsp;Solicitudes</a>
+    <a class="btn btn-dark" href="{% url 'backend_publicaciones' %}"><i class="fas fa-list"></i>&nbsp;&nbsp;Publicaciones
+>>>>>>> Rama-Publicaciones
         Musicales</a>
     <a class="btn btn-dark" href="{% url 'frontend' %}"><i class="fas fa-arrow-left"></i>&nbsp;&nbsp;Inicio</a>
     <a class="btn btn-danger" href="{% url 'logout' %}" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="fas fa-sign-out-alt"></i>&nbsp;&nbsp;Cerrar Sesión</a>
@@ -195,4 +263,6 @@
         <i class="fas fa-headset"></i>&nbsp;&nbsp; Ayuda
     </a>
 {% endblock Offcanvas %}
+
+
 

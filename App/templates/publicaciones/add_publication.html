@@ -157,7 +157,11 @@
                     </div>
 
                     <div class="form-group">
+<<<<<<< HEAD
                         <textarea class="form-control text-sm" name="note" maxlength="1000" id="note" rows="3"
+=======
+                        <textarea style="field-sizing: content" class="form-control text-sm" name="note" maxlength="400" id="note" rows="3"
+>>>>>>> Rama-Publicaciones
                                   placeholder="La descripción es opcional...">{% block Value-description %}{% endblock Value-description %}</textarea>
                     </div>
 
@@ -298,10 +302,19 @@
                 if (e.target.value === "{{ editor }}") {
                     cant_digitos_prefijo_editor = '{{ editor.prefijo.rango.rango_superior }}'.length;
                     cant_public_editor = {{ editor.musical_publication_set.count }};
+<<<<<<< HEAD
                     valor_prefijo_public = String(cant_public_editor + 1)
                     prefijo_publicacion = formatear_prefijo(valor_prefijo_public, cant_digitos_prefijo_editor);
                     // En el excepcional caso que el prefijo del editor necesite un cero delante
                     if ({{ editor.prefijo }} < 10) {
+=======
+                    if (cant_public_editor !== 0) {
+                        valor_prefijo_public = String({{ editor.musical_publication_set.last.prefijo.value }} + 1)
+                    } else valor_prefijo_public = '1'
+                    prefijo_publicacion = formatear_prefijo(valor_prefijo_public, cant_digitos_prefijo_editor);
+                    // En el excepcional caso que el prefijo del editor necesite un cero delante
+                    if ( '{{ editor.prefijo }}' < 10) {
+>>>>>>> Rama-Publicaciones
                         prefijo_editor = formatear_prefijo('{{ editor.prefijo }}', prefijo_publicacion.length)
                     } else prefijo_editor = '{{ editor.prefijo }}'
                     editor_prefijo_input.value = "Prefijo del Editor: " + prefijo_editor;

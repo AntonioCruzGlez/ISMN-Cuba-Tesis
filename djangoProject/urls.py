@@ -20,6 +20,13 @@ urlpatterns = [
     path('backend/', views.backend_editores, name="backend_editores"),
     path('backend_publicaciones', views.backend_publicaciones, name="backend_publicaciones"),
     path('backend_solicitudes', views.backend_solicitudes, name="backend_solicitudes"),
+<<<<<<< HEAD
+=======
+    # Path to accept an inscription application
+    path('accept_inscription/<str:solicitud_id>', views.accept_inscription, name="accept_inscription"),
+    # Path to accept an ismn application
+    path('accept_ismn_application/<str:solicitud_id>', views.accept_ismn_solicitud, name="accept_ismn_application"),
+>>>>>>> Rama-Publicaciones
     # Path to add an editor
     path('add_editor/', views.add_editor, name="add_editor"),
     # Path to delete an editor
@@ -40,14 +47,26 @@ urlpatterns = [
     path('delete_musical_publication/<str:musical_publication_id>', views.delete_musical_publication, name="delete_musical_publication"),
     # Path to delete a Solicitud
     path('delete_solicitud/<str:solicitud_id>', views.delete_solicitud, name="delete_solicitud"),
+<<<<<<< HEAD
+=======
+    # Path to send an ISMN-application
+    path('solicitud-ismn/', views.solicitud_ismn, name="solicitud-ismn"),
+>>>>>>> Rama-Publicaciones
 
     # ========================== EXPORT DOCUMENTS ==========================
     # Path to export a single musical publication
     path('export_musical_publication/<str:musical_publication_id>', views.export_musical_publication, name="export_publication"),
+    path('export_publications_list/', views.export_publications_list, name='export_publications_list'),
+    path('export_editores_list/', views.export_editores_list, name='export_editores_list'),
+    path('export_solicitudes_list/', views.export_solicitudes_list, name='export_solicitudes_list'),
 
     # ========================== SEND EMAIL ==========================
     # Path to send confirmation-code
+<<<<<<< HEAD
     path('send_email', views.send_email, name="home"),
+=======
+    path('send_code_confirmation', views.send_code_confirmation, name="home"),
+>>>>>>> Rama-Publicaciones
 ]
 
 if settings.DEBUG:

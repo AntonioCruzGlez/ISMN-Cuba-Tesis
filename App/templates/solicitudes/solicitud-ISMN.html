@@ -1,0 +1,137 @@
+{% extends 'publicaciones/add_publication.html' %}
+
+{% block title %} Solicitud ISMN {% endblock title %}
+
+{% block navbar-content %}
+    <i class="fas fa-envelope"></i>&nbsp;&nbsp; Solicitud ISMN
+{% endblock navbar-content %}
+
+{% block time %} {% endblock time %}
+
+{% block Offcanvas %}
+    <a class="btn btn-dark" href="{% url 'frontend' %}"><i class="fas fa-arrow-left"></i>&nbsp;&nbsp;Atrás</a>
+     <a class="btn btn-danger" href="{% url 'logout' %}" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="fas fa-sign-out-alt"></i>&nbsp;&nbsp;Cerrar Sesión</a>
+    <hr>
+    <a href="#" class="btn btn-dark">
+        <i class="fas fa-headset"></i>&nbsp;&nbsp; Ayuda
+    </a>
+{% endblock Offcanvas %}
+
+<!-- PAGE CONTENT -->
+{% block content %}
+    <div class="container">
+        <div class="card card-body border-dark mt-5">
+            <span class="text-center">
+                <span class="text-primary"> INSERTE LOS DATOS DE LA PUBLICACIÓN </span></span>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-12">
+
+                <!-- Form -->
+                <form action="/solicitud-ismn/" method="POST"
+                                         enctype="multipart/form-data" class="card p-3 border-dark mt-3 form-register">
+                    {% csrf_token %}
+
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="input-group input-group-sm mb-3">
+                                <span class="input-group-text side-label-form justify-content-center"><i
+                                        class="fas fa fa-heading"></i></span>
+                                <input type="text" class="form-control" maxlength="40" name="title" id="title"
+                                       placeholder="Título de la Obra" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="input-group input-group-sm mb-3">
+                                <span class="input-group-text side-label-form justify-content-center"><i
+                                        class="fas fa fa-pen"></i></span>
+                                <input type="text" class="form-control" maxlength="40" name="autor" id="autor"
+                                       placeholder="Autor de la publicación" required >
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="input-group input-group-sm mb-3">
+                                <span class="input-group-text side-label-form justify-content-center"><i
+                                        class="fas fa fa-music"></i></span>
+                                <select class="form-select" name="gender" id="gender" required>
+                                    <option value="" hidden>Seleccione un género musical</option>
+                                    <option disabled></option>
+                                    <option>Danzón</option>
+                                    <option>Bolero</option>
+                                    <option>Popular Bailable</option>
+                                    <option>Mambo</option>
+                                    <option>ChaChaCha</option>
+                                    <option>Rumba</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-6">
+                            <div class="input-group input-group-sm mb-3">
+                                <span class="input-group-text side-label-form justify-content-center"><i
+                                        class="fas fa fa-calendar"></i></span>
+                                <input type="date" class="form-control" maxlength="40" name="date" id="date"
+                                       placeholder="Fecha 'dd/mm/aaaa'" required>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group mb-2">
+                        <textarea style="field-sizing: content" class="form-control text-sm" name="note" maxlength="500" id="note" rows="1"
+                                  placeholder="La descripción es opcional..."></textarea>
+                    </div>
+
+                    <hr style="height: 2px;">
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="mb-3">
+                                <div class="mb-3" style="font-size: 14px;"><i class="fa fa-cloud-upload-alt"></i>&nbsp;&nbsp;
+                                        Subir letra de la canción
+                                </div>
+                                <input type="file" class="form-control form-control-sm" name="publication_letter"
+                                       accept="application/pdf,application/msword,.doc,.docx,.pdf,.txt">
+                                <div class="form-text" style="font-size: 12px;">* Extensiones permitidas: word - pdf -
+                                    txt
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="mb-3">
+                                <div class="mb-3" style="font-size: 14px;"><i class="fa fa-cloud-upload-alt"></i>&nbsp;&nbsp;
+                                     Subir imagen de la publicación
+                                </div>
+                                <input type="file" class="form-control form-control-sm" name="publication_image"
+                                       accept="image/*">
+                                <div class="form-text" style="font-size: 12px;">* Extensiones permitidas: jpg - png -
+                                    jpeg
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+
+                    <div class="d-flex flex-column gap-2 mt-3">
+                        <!-- Add Button -->
+                        <button type="submit" class="btn btn-primary btn-sm" id="btn-add">
+                             <i class="fas fa-paper-plane">&nbsp;&nbsp;</i>
+                                Enviar
+                        </button>
+
+                        <!-- Back Button -->
+                        <a href="{% url 'frontend' %}" class="btn btn-dark btn-sm"><i
+                                class="fas fa-chevron-left"></i>&nbsp;&nbsp;Atrás</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock content %}

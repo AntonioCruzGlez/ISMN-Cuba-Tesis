@@ -142,4 +142,12 @@ EMAIL_HOST_USER = 'antoniocruzglez24@gmail.com'
 EMAIL_HOST_PASSWORD = 'apcvjrfblpnpjokn'
 EMAIL_USE_TLS = True
 
+JAZZMIN_SETTINGS = {
+    "site_title": "ISMN-Cuba",
+    "site_logo": "img/cuba.png",
+    "site_brand": "ISMN-Cuba",
+    "login_logo": "img/cuba.png",
+    "copyright": "Cámara Cubana del Libro. Departamento ISMN",
+}
+
 

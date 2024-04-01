@@ -178,7 +178,13 @@
 
                     <hr style="height: 2px;">
                     <div class="mb-3">
+<<<<<<< HEAD
                         <div class="mb-3" style="font-size: 14px;"><i class="fa fa-cloud-upload-alt"></i>&nbsp;&nbsp; Sube una foto a tu perfil</div>
+=======
+                    {% block Value-imagen %}{% endblock Value-imagen %}
+                        <div class="mb-3" style="font-size: 14px;"><i class="fa fa-cloud-upload-alt"></i>&nbsp;&nbsp;
+                            {% block Title-Imagen-Sub %} Sube una foto a tu perfil {% endblock Title-Imagen-Sub %}</div>
+>>>>>>> Rama-Publicaciones
                         <input type="file" class="form-control form-control-sm" name="imagenProfile" accept="image/*">
                         <div class="form-text" style="font-size: 12px;">* Extensiones permitidas: jpg - png - jpeg</div>
                     </div>
